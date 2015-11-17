@@ -1,0 +1,12 @@
+# Kii thing-if library for Gateway
+Library connect to Kii thing-if cloud API designed for Gateway Agent.
+
+## How to use
+```shell
+mkdir -p $GOPATH/github.com/KiiPlatform
+cd $GOPATH/github.com/KiiPlatform
+git clone git@github.com:KiiPlatform/thing_if_gateway.git
+go build github.com/KiiPlatform/thing_if_gateway
+go install github.com/KiiPlatform/thing_if_gateway
+go test github.com/KiiPlatform/thing_if_gateway
+```
