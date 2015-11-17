@@ -1,8 +1,8 @@
-package kii_cloud_api_test
+package thing_if_gateway
 
 import (
         "testing"
-        kca "kii_cloud_api"
+        kca "github.com/KiiPlatform/thing_if_gateway"
 )
 
 func TestAnonymousLogin(t *testing.T) {

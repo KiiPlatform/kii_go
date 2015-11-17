@@ -1,4 +1,4 @@
-package kii_cloud_api
+packagea thing_if_gateway
 
 import (
         "bytes"
