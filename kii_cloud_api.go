@@ -99,6 +99,7 @@ type MqttEndpoint struct {
 // Struct represents API author.
 type APIAuthor struct {
 	Token string
+	ID string
 	App   App
 }
 
@@ -138,6 +139,8 @@ func (au *APIAuthor) AnonymousLogin() error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >=300 {
+	}
 
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -151,6 +154,7 @@ func (au *APIAuthor) AnonymousLogin() error {
 		return err
 	}
 	au.Token = respObj.Access_token
+	au.ID = respObj.ID
 	return nil
 }
 
@@ -189,3 +193,4 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	}
 	return &ret, nil
 }
+

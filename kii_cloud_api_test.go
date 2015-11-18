@@ -19,7 +19,10 @@ func TestAnonymousLogin(t *testing.T) {
 		t.Errorf("got error on anonymous login %s", err)
 	}
 	if len(author.Token) < 1 {
-		t.Errorf("failed to get author token %s", author.Token)
+		t.Errorf("failed to get author token %+v", author)
+	}
+	if len(author.ID) < 1 {
+		t.Errorf("failed to get author ID %+v", author)
 	}
 }
 
