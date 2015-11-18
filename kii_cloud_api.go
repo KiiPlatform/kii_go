@@ -1,3 +1,5 @@
+// Provides APIs to access to Kii Cloud and
+// Thing Interaction Framework (thing-if).
 package kii
 
 import (
@@ -10,12 +12,14 @@ import (
 	"strings"
 )
 
+// Represents Application in Kii Cloud.
 type App struct {
 	AppID       string
 	AppKey      string
 	AppLocation string
 }
 
+// Obtain Host name of the Application endpoint.
 func (ka *App) HostName() string {
 	lowerLoc := strings.ToLower(ka.AppLocation)
 	switch lowerLoc {
@@ -32,20 +36,25 @@ func (ka *App) HostName() string {
 	}
 }
 
+// Obtain thing-if endpoint base url.
 func (ka *App) ThingIFBaseUrl() string {
 	return fmt.Sprintf("https://%s/thing-if/apps/%s", ka.HostName(), ka.AppID)
 }
 
+// Obtain Kii Cloud endpoint base url.
 func (ka *App) KiiCloudBaseUrl() string {
 	return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
 }
 
+// Layout position of the Thing
 type LayoutPosition int
 const (
 	ENDNODE LayoutPosition = iota
 	STANDALONE
 	GATEWAY
 )
+
+// Obtain Layout postion of the Thing in string.
 func (lp LayoutPosition) String() string {
 	switch lp {
 	case ENDNODE:
@@ -60,6 +69,7 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
+// Struct for requesting Gateway Onboard.
 type OnboardGatewayRequest struct {
 	VendorThingID   string                 `json:"vendorThingID"`
 	ThingPassword   string                 `json:"thingPassword"`
@@ -68,12 +78,14 @@ type OnboardGatewayRequest struct {
 	ThingProperties map[string]interface{} `json:"thingProperties"`
 }
 
+// Struct for receiving response of Gateway Onboard.
 type OnboardGatewayResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
 	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
 }
 
+// Struct represents MQTT endpoint.
 type MqttEndpoint struct {
 	InstallationID string `json:"installationID"`
 	Host           string `json:"host"`
@@ -84,11 +96,14 @@ type MqttEndpoint struct {
 	PortTCP        int    `json:"portTCP"`
 }
 
+// Struct represents API author.
 type APIAuthor struct {
 	Token string
 	App   App
 }
 
+// Login as Anonymous user.
+// When there's no error, Token is updated with Anonymous token.
 func (au *APIAuthor) AnonymousLogin() error {
 	type AnonymousLoginRequest struct {
 		ClientID     string `json:"client_id"`
@@ -139,6 +154,8 @@ func (au *APIAuthor) AnonymousLogin() error {
 	return nil
 }
 
+// Let Gateway onboard to the cloud.
+// When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
 	reqJson, err := json.Marshal(request)
