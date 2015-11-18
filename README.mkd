@@ -1,5 +1,5 @@
-# Kii thing-if library for Gateway
-Library connect to Kii thing-if cloud API designed for Gateway Agent.
+# Kii Go
+Go library connect to Kii cloud API.
 
 ## How to use
 ```shell
