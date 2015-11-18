@@ -111,29 +111,29 @@ func (au *APIAuthor) AnonymousLogin() error {
 		return err
 	}
 	url := fmt.Sprintf("%s/oauth2/token", au.App.KiiCloudBaseUrl())
-	req, err2 := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
-	if err2 != nil {
-		return err2
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return err
 	}
 	req.Header.Set("content-type", "application/json")
 
 	client := &http.Client{}
-	resp, err3 := client.Do(req)
-	if err3 != nil {
-		return err3
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
 	}
 	defer resp.Body.Close()
 
-	bodyStr, err4 := ioutil.ReadAll(resp.Body)
-	if err4 != nil {
-		return err4
+	bodyStr, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
 	}
 	log.Println("body: " + string(bodyStr))
 
 	var respObj AnonymousLoginResponse
-	err5 := json.Unmarshal(bodyStr, &respObj)
-	if err5 != nil {
-		return err5
+	err = json.Unmarshal(bodyStr, &respObj)
+	if err != nil {
+		return err
 	}
 	au.Token = respObj.Access_token
 	return nil
