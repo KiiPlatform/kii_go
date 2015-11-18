@@ -3,6 +3,7 @@ package kii_test
 import (
         "testing"
         kii "github.com/KiiPlatform/kii_go"
+        "encoding/json"
 )
 
 func TestAnonymousLogin(t *testing.T) {
@@ -21,4 +22,25 @@ func TestAnonymousLogin(t *testing.T) {
         if len(author.Token) < 1 {
                 t.Errorf("failed to get author token %s", author.Token)
         }
+}
+
+func TestMarshal(t *testing.T) {
+        requestObj := kii.OnboardGatewayRequest {
+                VendorThingID: "dummyID",
+                ThingPassword: "dummyPass",
+                ThingType: "dummyType",
+                LayoutPosition: "GATEWAY",
+                ThingProperties: map[string]interface{}{
+                        "myCustomString" : "str",
+                        "myNumber" : 1,
+                        "myObject" : map[string]interface{}{
+                                "a" : "b",
+                        },
+                },
+        }
+        str, err := json.Marshal(requestObj)
+        if err != nil {
+                t.Error("failed to marshal object")
+        }
+        t.Logf(string(str))
 }

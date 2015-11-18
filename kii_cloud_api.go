@@ -41,11 +41,11 @@ func (ka *App) KiiCloudBaseUrl() string {
 }
 
 type OnboardGatewayRequest struct {
-        // TODO: implement marshaler for thingProperties
         VendorThingID string `json:"vendorThingID"`
         ThingPassword string `json:"thingPasssword"`
-        thingType string `json:"thingType"`
-        layoutPosition string `json:"layoutPosition"`
+        ThingType string `json:"thingType"`
+        LayoutPosition string `json:"layoutPosition"`
+        ThingProperties map[string]interface{} `json:"thingProperties"`
 }
 
 type OnboardGatewayResponse struct {
