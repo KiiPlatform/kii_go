@@ -40,9 +40,29 @@ func (ka *App) KiiCloudBaseUrl() string {
 	return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
 }
 
+type LayoutPosition int
+const (
+	ENDNODE LayoutPosition = iota
+	STANDALONE
+	GATEWAY
+)
+func (lp LayoutPosition) String() string {
+	switch lp {
+	case ENDNODE:
+		return "ENDNOE"
+	case STANDALONE:
+		return "STANDALONE"
+	case GATEWAY:
+		return "GATEWAY"
+	default:
+		log.Fatal("never reache here")
+		return "invalid layout"
+	}
+}
+
 type OnboardGatewayRequest struct {
 	VendorThingID   string                 `json:"vendorThingID"`
-	ThingPassword   string                 `json:"thingPasssword"`
+	ThingPassword   string                 `json:"thingPassword"`
 	ThingType       string                 `json:"thingType"`
 	LayoutPosition  string                 `json:"layoutPosition"`
 	ThingProperties map[string]interface{} `json:"thingProperties"`
@@ -51,10 +71,10 @@ type OnboardGatewayRequest struct {
 type OnboardGatewayResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
-	MqttEndPoint MqttEndPoint `json:"mqttEndpooint"`
+	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
 }
 
-type MqttEndPoint struct {
+type MqttEndpoint struct {
 	InstallationID string `json:"installationID"`
 	Host           string `json:"host"`
 	MqttTopic      string `json:"mqttTopic"`
@@ -119,8 +139,36 @@ func (au *APIAuthor) AnonymousLogin() error {
 	return nil
 }
 
-func (au *APIAuthor) Onboard(request *OnboardGatewayRequest) (OnboardGatewayResponse, error) {
-	// TODO: implement it.
+func (au *APIAuthor) OnboardGateway(request *OnboardGatewayRequest) (OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return ret, err
+	}
+	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseUrl())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return ret, err
+	}
+	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
+	req.Header.Set("authorization", "bearer " + au.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return ret, err
+	}
+	defer resp.Body.Close()
+
+	bodyStr, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ret, err
+	}
+	log.Println("body: " + string(bodyStr))
+
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return ret, err
+	}
 	return ret, nil
 }
