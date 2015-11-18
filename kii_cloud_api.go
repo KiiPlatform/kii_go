@@ -139,16 +139,16 @@ func (au *APIAuthor) AnonymousLogin() error {
 	return nil
 }
 
-func (au *APIAuthor) OnboardGateway(request *OnboardGatewayRequest) (OnboardGatewayResponse, error) {
+func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
 	reqJson, err := json.Marshal(request)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseUrl())
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
 	req.Header.Set("authorization", "bearer " + au.Token)
@@ -156,19 +156,19 @@ func (au *APIAuthor) OnboardGateway(request *OnboardGatewayRequest) (OnboardGate
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	log.Println("body: " + string(bodyStr))
 
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	return ret, nil
+	return &ret, nil
 }

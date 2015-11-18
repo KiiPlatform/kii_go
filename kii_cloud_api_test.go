@@ -57,7 +57,7 @@ func TestGatewayOnboard(t *testing.T) {
 			},
 		},
 	}
-	responseObj, err := author.OnboardGateway(&requestObj)
+	responseObj, err := author.OnboardGateway(requestObj)
 	if err != nil {
 		t.Errorf("got error on Onboarding %s", err)
 	}
