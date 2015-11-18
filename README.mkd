@@ -5,8 +5,8 @@ Go library connect to Kii cloud API.
 ```shell
 mkdir -p $GOPATH/github.com/KiiPlatform
 cd $GOPATH/github.com/KiiPlatform
-git clone git@github.com:KiiPlatform/thing_if_gateway.git
-go build github.com/KiiPlatform/thing_if_gateway
-go install github.com/KiiPlatform/thing_if_gateway
-go test github.com/KiiPlatform/thing_if_gateway
+git clone git@github.com:KiiPlatform/kii_go.git
+go build github.com/KiiPlatform/kii_go
+go install github.com/KiiPlatform/kii_go
+go test github.com/KiiPlatform/kii_go
 ```
