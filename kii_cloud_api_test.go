@@ -1,17 +1,17 @@
-package thing_if_gateway
+package kii_test
 
 import (
         "testing"
-        kca "github.com/KiiPlatform/thing_if_gateway"
+        kii "github.com/KiiPlatform/kii_go"
 )
 
 func TestAnonymousLogin(t *testing.T) {
-        app := kca.KiiApp {
+        app := kii.App {
                 AppID: "9ab34d8b",
                 AppKey: "7a950d78956ed39f3b0815f0f001b43b",
                 AppLocation: "JP",
         }
-        author := kca.APIAuthor {
+        author := kii.APIAuthor {
                 App: app,
         }
         err := author.AnonymousLogin()

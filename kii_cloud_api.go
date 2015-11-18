@@ -1,4 +1,4 @@
-packagea thing_if_gateway
+package kii
 
 import (
         "bytes"
@@ -10,13 +10,13 @@ import (
         "log"
 )
 
-type KiiApp struct {
+type App struct {
         AppID string
         AppKey string
         AppLocation string
 }
 
-func (ka *KiiApp) HostName() string {
+func (ka *App) HostName() string {
        lowerLoc := strings.ToLower(ka.AppLocation)
        switch lowerLoc {
        case "jp":
@@ -32,11 +32,11 @@ func (ka *KiiApp) HostName() string {
        }
 }
 
-func (ka *KiiApp) ThingIFBaseUrl() string {
+func (ka *App) ThingIFBaseUrl() string {
         return fmt.Sprintf("https://%s/thing-if/apps/%s", ka.HostName(), ka.AppID)
 }
 
-func (ka *KiiApp) KiiCloudBaseUrl() string {
+func (ka *App) KiiCloudBaseUrl() string {
         return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
 }
 
@@ -66,7 +66,7 @@ type MqttEndPoint struct {
 
 type APIAuthor struct {
         Token string
-        App KiiApp
+        App App
 }
 
 func (au *APIAuthor) AnonymousLogin() error {
