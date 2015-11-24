@@ -48,6 +48,7 @@ func (ka *App) KiiCloudBaseUrl() string {
 
 // Layout position of the Thing
 type LayoutPosition int
+
 const (
 	ENDNODE LayoutPosition = iota
 	STANDALONE
@@ -58,7 +59,7 @@ const (
 func (lp LayoutPosition) String() string {
 	switch lp {
 	case ENDNODE:
-		return "ENDNOE"
+		return "END_NODE"
 	case STANDALONE:
 		return "STANDALONE"
 	case GATEWAY:
@@ -99,8 +100,26 @@ type MqttEndpoint struct {
 // Struct represents API author.
 type APIAuthor struct {
 	Token string
-	ID string
+	ID    string
 	App   App
+}
+
+// Struct represents Gateway.
+type Gateway struct {
+	Token string
+	ID    string
+	App   App
+}
+
+type GenerateEndNodeTokenRequest struct {
+	ExpiresIn string `json:"expires_in,omitempty"`
+}
+
+type GenerateEndNodeTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	ThingID      string `json:"id"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 // Login as Anonymous user.
@@ -139,7 +158,7 @@ func (au *APIAuthor) AnonymousLogin() error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >=300 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 	}
 
 	bodyStr, err := ioutil.ReadAll(resp.Body)
@@ -172,7 +191,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
-	req.Header.Set("authorization", "bearer " + au.Token)
+	req.Header.Set("authorization", "bearer "+au.Token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -194,3 +213,36 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	return &ret, nil
 }
 
+// Request access token of end node of gateway.
+// When there's no error, GenerateEndNodeTokenResponse is returned.
+func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeTokenResponse, error) {
+	var ret GenerateEndNodeTokenResponse
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", gw.App.KiiCloudBaseUrl(), gw.ID, endnodeID)
+
+	reqObj := GenerateEndNodeTokenRequest{
+		ExpiresIn: "",
+	}
+	reqJson, _ := json.Marshal(reqObj)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("authorization", "bearer "+gw.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyStr, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("body: " + string(bodyStr))
+
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}

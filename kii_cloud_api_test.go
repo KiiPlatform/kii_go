@@ -44,7 +44,7 @@ func AnonymousLogin() (kii.APIAuthor, error) {
 
 func TestGatewayOnboard(t *testing.T) {
 	author, err := AnonymousLogin()
-	if (err != nil) {
+	if err != nil {
 		t.Errorf("got error on anonymous login %s", err)
 	}
 	requestObj := kii.OnboardGatewayRequest{
@@ -90,5 +90,69 @@ func TestGatewayOnboard(t *testing.T) {
 	}
 	if responseObj.MqttEndpoint.PortTCP < 1 {
 		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+}
+func EndNodeOnboard(au kii.APIAuthor) (string, error) {
+	requestObj := kii.OnboardGatewayRequest{
+		VendorThingID:  "dummyID",
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: kii.ENDNODE.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	responseObj, err := au.OnboardGateway(requestObj)
+	if err != nil {
+		return "", err
+	}
+	return responseObj.ThingID, nil
+}
+
+func GatewayOnboard() (*kii.Gateway, error) {
+
+	author, err := AnonymousLogin()
+	if err != nil {
+		return nil, err
+	}
+	requestObj := kii.OnboardGatewayRequest{
+		VendorThingID:  "dummyEndNodeID",
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: kii.GATEWAY.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	responseObj, err := author.OnboardGateway(requestObj)
+	if err != nil {
+		return nil, err
+	}
+	gateway := kii.Gateway{
+		Token: responseObj.AccessToken,
+		ID:    responseObj.ThingID,
+		App:   author.App,
+	}
+	return &gateway, err
+}
+func TestGenerateEndNodeToken(t *testing.T) {
+	gateway, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	responseObj2, err2 := gateway.GenerateEndNodeToken("th.350948a00022-10ca-5e11-6829-0ffc0c06")
+	if err2 != nil {
+		t.Errorf("got error when GenerateEndNodeToken %s", err2)
+	}
+	if responseObj2.AccessToken == "" {
+		t.Errorf("got response object failed")
 	}
 }
