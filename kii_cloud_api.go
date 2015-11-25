@@ -128,13 +128,6 @@ type APIAuthor struct {
 	App   App
 }
 
-// Struct represents Gateway.
-type Gateway struct {
-	Token string
-	ID    string
-	App   App
-}
-
 // Struct for requesting end node token
 type GenerateEndNodeTokenRequest struct {
 	ExpiresIn string `json:"expires_in,omitempty"`
@@ -252,9 +245,9 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 
 // Request access token of end node of gateway.
 // When there's no error, GenerateEndNodeTokenResponse is returned.
-func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeTokenResponse, error) {
+func GenerateEndNodeToken(app App, gatewayID string, gatewayToken string, endnodeID string) (*GenerateEndNodeTokenResponse, error) {
 	var ret GenerateEndNodeTokenResponse
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", gw.App.KiiCloudBaseUrl(), gw.ID, endnodeID)
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", app.KiiCloudBaseUrl(), gatewayID, endnodeID)
 
 	reqObj := GenerateEndNodeTokenRequest{
 		ExpiresIn: "",
@@ -262,7 +255,7 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 	reqJson, _ := json.Marshal(reqObj)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+gw.Token)
+	req.Header.Set("authorization", "bearer "+gatewayToken)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -278,12 +271,12 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 
 // Add an end node thing to gateway
 // when it succeeds, error is nil
-func (gw *Gateway) AddEndNode(endnodeID string) error {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", gw.App.KiiCloudBaseUrl(), gw.ID, endnodeID)
+func AddEndNode(app App, gatewayID string, gatewayToken string, endnodeID string) error {
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", app.KiiCloudBaseUrl(), gatewayID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+gw.Token)
+	req.Header.Set("authorization", "bearer "+gatewayToken)
 	if err != nil {
 		return err
 	}
@@ -294,7 +287,7 @@ func (gw *Gateway) AddEndNode(endnodeID string) error {
 
 // Register Thing.
 // Where there is no error, ThingRegisterResponse is returned
-func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterResponse, error) {
+func RegisterThing(app App, request ThingRegisterRequest) (*ThingRegisterResponse, error) {
 	var ret ThingRegisterResponse
 
 	reqJson, err := json.Marshal(request)

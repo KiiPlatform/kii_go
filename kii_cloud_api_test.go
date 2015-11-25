@@ -95,11 +95,11 @@ func TestGatewayOnboard(t *testing.T) {
 	}
 }
 
-func GatewayOnboard() (*kii.Gateway, error) {
+func GatewayOnboard() (gatewayID string, gatewayToken string, error error) {
 
 	author, err := AnonymousLogin()
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 	requestObj := kii.OnboardGatewayRequest{
 		VendorThingID:  "dummyEndNodeID",
@@ -116,17 +116,12 @@ func GatewayOnboard() (*kii.Gateway, error) {
 	}
 	responseObj, err := author.OnboardGateway(requestObj)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
-	gateway := kii.Gateway{
-		Token: responseObj.AccessToken,
-		ID:    responseObj.ThingID,
-		App:   author.App,
-	}
-	return &gateway, err
+	return responseObj.ThingID, responseObj.AccessToken, err
 }
 func TestGenerateEndNodeTokenSuccess(t *testing.T) {
-	gateway, err := GatewayOnboard()
+	gatewayID, gatewayToken, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -135,12 +130,12 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = gateway.AddEndNode(*endNodeID)
+	err = kii.AddEndNode(testApp, gatewayID, gatewayToken, *endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj2, err2 := gateway.GenerateEndNodeToken(*endNodeID)
+	responseObj2, err2 := kii.GenerateEndNodeToken(testApp, gatewayID, gatewayToken, *endNodeID)
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -149,11 +144,11 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	}
 }
 func TestGenerateEndNodeTokenFail(t *testing.T) {
-	gateway, err := GatewayOnboard()
+	gatewayID, gatewayToken, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := gateway.GenerateEndNodeToken("th.notexistThing")
+	responseObj2, err2 := kii.GenerateEndNodeToken(testApp, gatewayID, gatewayToken, "th.notexistThing")
 	if err2 == nil {
 		t.Errorf("should fail")
 	}
@@ -178,7 +173,7 @@ func TestRegisterEndNodeSuccess(t *testing.T) {
 			},
 		},
 	}
-	responseObj, err := testApp.RegisterThing(requestObj)
+	responseObj, err := kii.RegisterThing(testApp, requestObj)
 	if err != nil {
 		t.Errorf("fail to register thing")
 	}
@@ -213,7 +208,7 @@ func TestRegisterEndNodeFail(t *testing.T) {
 			},
 		},
 	}
-	responseObj, err := testApp.RegisterThing(requestObj)
+	responseObj, err := kii.RegisterThing(testApp, requestObj)
 	if err == nil {
 		t.Errorf("should fail")
 	}
@@ -237,7 +232,7 @@ func RegisterAnEndNode() (endNodeID *string, error error) {
 			},
 		},
 	}
-	responseObj, err := testApp.RegisterThing(requestObj)
+	responseObj, err := kii.RegisterThing(testApp, requestObj)
 	if err != nil {
 		return nil, err
 	} else {
@@ -246,7 +241,7 @@ func RegisterAnEndNode() (endNodeID *string, error error) {
 }
 func TestAddEndNodeSuccess(t *testing.T) {
 
-	gateway, err := GatewayOnboard()
+	gatewayID, gatewayToken, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -255,7 +250,7 @@ func TestAddEndNodeSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = gateway.AddEndNode(*endNodeID)
+	err = kii.AddEndNode(testApp, gatewayID, gatewayToken, *endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
@@ -263,18 +258,18 @@ func TestAddEndNodeSuccess(t *testing.T) {
 
 func TestAddEndNodeFail(t *testing.T) {
 
-	gateway, err := GatewayOnboard()
+	gatewayID, gatewayToken, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	err = gateway.AddEndNode("dummyEndNode")
+	err = kii.AddEndNode(testApp, gatewayID, gatewayToken, "dummyEndNode")
 	if err == nil {
 		t.Errorf("should fail")
 	}
 }
 
 func TestEndNodeStateSuccess(t *testing.T) {
-	gateway, err := GatewayOnboard()
+	gatewayID, gatewayToken, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -283,12 +278,12 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = gateway.AddEndNode(*endNodeID)
+	err = kii.AddEndNode(testApp, gatewayID, gatewayToken, *endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj, err := gateway.GenerateEndNodeToken(*endNodeID)
+	responseObj, err := kii.GenerateEndNodeToken(testApp, gatewayID, gatewayToken, *endNodeID)
 	if err != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err)
 	}
