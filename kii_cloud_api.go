@@ -5,6 +5,7 @@ package kii
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -122,6 +123,25 @@ type GenerateEndNodeTokenResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 	ThingID      string `json:"id"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+// Struct for requesting Thing Registration.
+type ThingRegisterRequest struct {
+	VendorThingID   string                 `json:"_vendorThingID"`
+	ThingPassword   string                 `json:"_password"`
+	ThingType       string                 `json:"_thingType"`
+	LayoutPosition  string                 `json:"_layoutPosition"`
+	ThingProperties map[string]interface{} `json:"thingProperties"`
+}
+
+// Struct for receiving response of end node token
+type ThingRegisterResponse struct {
+	ThingID        string `json:"_thingID"`
+	VendorThingID  string `json:"_vendorThingID"`
+	ThingType      string `json:"_thingType"`
+	LayoutPosition string `json:"_layoutPosition"`
+	Created        int    `json:"_created"`
+	Disabled       bool   `json:"_disabled"`
 }
 
 // Login as Anonymous user.
@@ -247,4 +267,49 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 		return nil, err
 	}
 	return &ret, nil
+}
+
+// Register Thing.
+// Where there is no error, ThingRegisterResponse is returned
+func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterResponse, error) {
+	var ret ThingRegisterResponse
+
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/things", app.KiiCloudBaseUrl())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
+	req.Header.Set("X-Kii-AppID", app.AppID)
+	req.Header.Set("X-Kii-AppKey", app.AppKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyStr, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("body: " + string(bodyStr))
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	} else {
+		err = errors.New(string(bodyStr))
+		return nil, err
+	}
 }

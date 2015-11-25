@@ -1,18 +1,25 @@
 package kii_test
 
 import (
+	"fmt"
 	kii "github.com/KiiPlatform/kii_go"
 	"testing"
+	"time"
 )
 
-func TestAnonymousLogin(t *testing.T) {
-	app := kii.App{
+var testApp kii.App
+
+func init() {
+	testApp = kii.App{
 		AppID:       "9ab34d8b",
 		AppKey:      "7a950d78956ed39f3b0815f0f001b43b",
 		AppLocation: "JP",
 	}
+}
+
+func TestAnonymousLogin(t *testing.T) {
 	author := kii.APIAuthor{
-		App: app,
+		App: testApp,
 	}
 	err := author.AnonymousLogin()
 	if err != nil {
@@ -27,13 +34,8 @@ func TestAnonymousLogin(t *testing.T) {
 }
 
 func AnonymousLogin() (kii.APIAuthor, error) {
-	app := kii.App{
-		AppID:       "9ab34d8b",
-		AppKey:      "7a950d78956ed39f3b0815f0f001b43b",
-		AppLocation: "JP",
-	}
 	author := kii.APIAuthor{
-		App: app,
+		App: testApp,
 	}
 	err := author.AnonymousLogin()
 	if err != nil {
@@ -134,5 +136,64 @@ func TestGenerateEndNodeToken(t *testing.T) {
 	}
 	if responseObj2.AccessToken == "" {
 		t.Errorf("got response object failed")
+	}
+}
+
+func TestRegisterEndNodeSuccess(t *testing.T) {
+	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
+	requestObj := kii.ThingRegisterRequest{
+		VendorThingID:  VendorThingID,
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: kii.ENDNODE.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	responseObj, err := testApp.RegisterThing(requestObj)
+	if err != nil {
+		t.Errorf("fail to register thing")
+	}
+	if len(responseObj.ThingID) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+
+	if len(responseObj.VendorThingID) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+
+	if len(responseObj.ThingType) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+
+	if len(responseObj.LayoutPosition) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+}
+
+func TestRegisterEndNodeFail(t *testing.T) {
+	requestObj := kii.ThingRegisterRequest{
+		VendorThingID:  "",
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: kii.ENDNODE.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	responseObj, err := testApp.RegisterThing(requestObj)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if responseObj != nil {
+		t.Errorf("should fail")
 	}
 }
