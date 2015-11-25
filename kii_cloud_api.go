@@ -215,28 +215,15 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
 	req.Header.Set("authorization", "bearer "+au.Token)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	bodyStr, err := executeRequest(*req)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bodyStr, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("body: " + string(bodyStr))
-
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+	} else {
 		err = json.Unmarshal(bodyStr, &ret)
 		if err != nil {
 			return nil, err
 		}
 		return &ret, nil
-	} else {
-		err = errors.New(string(bodyStr))
-		return nil, err
 	}
 }
 
@@ -254,30 +241,16 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", "bearer "+gw.Token)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	bodyStr, err := executeRequest(*req)
 	if err != nil {
 		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bodyStr, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("body: " + string(bodyStr))
-
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+	} else {
 		err = json.Unmarshal(bodyStr, &ret)
 		if err != nil {
 			return nil, err
 		}
 		return &ret, nil
-	} else {
-		err = errors.New(string(bodyStr))
-		return nil, err
 	}
-
 }
 
 // Register Thing.
@@ -295,13 +268,26 @@ func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterRespo
 	if err != nil {
 		return nil, err
 	}
-
 	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
 	req.Header.Set("X-Kii-AppID", app.AppID)
 	req.Header.Set("X-Kii-AppKey", app.AppKey)
 
+	bodyStr, err := executeRequest(*req)
+	if err != nil {
+		return nil, err
+	} else {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
+}
+
+func executeRequest(request http.Request) (respBody []byte, error error) {
+
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := client.Do(&request)
 	if err != nil {
 		return nil, err
 	}
@@ -314,11 +300,7 @@ func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterRespo
 	log.Println("body: " + string(bodyStr))
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		err = json.Unmarshal(bodyStr, &ret)
-		if err != nil {
-			return nil, err
-		}
-		return &ret, nil
+		return bodyStr, nil
 	} else {
 		err = errors.New(string(bodyStr))
 		return nil, err
