@@ -211,3 +211,54 @@ func TestRegisterEndNodeFail(t *testing.T) {
 		t.Errorf("should fail")
 	}
 }
+
+func RegisterAnEndNode() (endNodeID *string, error error) {
+	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
+	requestObj := kii.ThingRegisterRequest{
+		VendorThingID:  VendorThingID,
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: kii.ENDNODE.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	responseObj, err := testApp.RegisterThing(requestObj)
+	if err != nil {
+		return nil, err
+	} else {
+		return &responseObj.ThingID, nil
+	}
+}
+func TestAddEndNodeSuccess(t *testing.T) {
+
+	gateway, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	endNodeID, err := RegisterAnEndNode()
+	if err != nil {
+		t.Errorf("got error when register an end node %s", err)
+	}
+
+	err = gateway.AddEndNode(*endNodeID)
+	if err != nil {
+		t.Errorf("got error when add end node %s", err)
+	}
+}
+
+func TestAddEndNodeFail(t *testing.T) {
+
+	gateway, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	err = gateway.AddEndNode("dummyEndNode")
+	if err == nil {
+		t.Errorf("should fail")
+	}
+}

@@ -253,6 +253,22 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 	}
 }
 
+// Add an end node thing to gateway
+// when it succeeds, error is nil
+func (gw *Gateway) AddEndNode(endnodeID string) error {
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", gw.App.KiiCloudBaseUrl(), gw.ID, endnodeID)
+
+	req, err := http.NewRequest("PUT", url, nil)
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("authorization", "bearer "+gw.Token)
+	if err != nil {
+		return err
+	}
+
+	_, err1 := executeRequest(*req)
+	return err1
+}
+
 // Register Thing.
 // Where there is no error, ThingRegisterResponse is returned
 func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterResponse, error) {
