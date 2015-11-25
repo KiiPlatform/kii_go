@@ -71,6 +71,29 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
+func executeRequest(request http.Request) (respBody []byte, error error) {
+
+	client := &http.Client{}
+	resp, err := client.Do(&request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bodyStr, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("body: " + string(bodyStr))
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		return bodyStr, nil
+	} else {
+		err = errors.New(string(bodyStr))
+		return nil, err
+	}
+}
+
 // Struct for requesting Gateway Onboard.
 type OnboardGatewayRequest struct {
 	VendorThingID   string                 `json:"vendorThingID"`
@@ -300,25 +323,21 @@ func (app *App) RegisterThing(request ThingRegisterRequest) (*ThingRegisterRespo
 	}
 }
 
-func executeRequest(request http.Request) (respBody []byte, error error) {
+func UpdateState(app App, thingID string, thingToken string, request interface{}) error {
 
-	client := &http.Client{}
-	resp, err := client.Do(&request)
+	reqJson, err := json.Marshal(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer resp.Body.Close()
 
-	bodyStr, err := ioutil.ReadAll(resp.Body)
+	url := fmt.Sprintf("%s/targets/thing:%s/states", app.ThingIFBaseUrl(), thingID)
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	log.Println("body: " + string(bodyStr))
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("authorization", "bearer "+thingToken)
 
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		return bodyStr, nil
-	} else {
-		err = errors.New(string(bodyStr))
-		return nil, err
-	}
+	_, err1 := executeRequest(*req)
+	return err1
 }

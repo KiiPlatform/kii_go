@@ -130,7 +130,17 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := gateway.GenerateEndNodeToken("th.350948a00022-10ca-5e11-6829-0ffc0c06")
+	endNodeID, err := RegisterAnEndNode()
+	if err != nil {
+		t.Errorf("got error when register an end node %s", err)
+	}
+
+	err = gateway.AddEndNode(*endNodeID)
+	if err != nil {
+		t.Errorf("got error when add end node %s", err)
+	}
+
+	responseObj2, err2 := gateway.GenerateEndNodeToken(*endNodeID)
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -260,5 +270,61 @@ func TestAddEndNodeFail(t *testing.T) {
 	err = gateway.AddEndNode("dummyEndNode")
 	if err == nil {
 		t.Errorf("should fail")
+	}
+}
+
+func TestEndNodeStateSuccess(t *testing.T) {
+	gateway, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	endNodeID, err := RegisterAnEndNode()
+	if err != nil {
+		t.Errorf("got error when register an end node %s", err)
+	}
+
+	err = gateway.AddEndNode(*endNodeID)
+	if err != nil {
+		t.Errorf("got error when add end node %s", err)
+	}
+
+	responseObj, err := gateway.GenerateEndNodeToken(*endNodeID)
+	if err != nil {
+		t.Errorf("got error when GenerateEndNodeToken %s", err)
+	}
+
+	type UpdateStateRequest struct {
+		Power      bool
+		Brightness int
+		Color      int
+	}
+
+	request := UpdateStateRequest{
+		Power:      true,
+		Brightness: 81,
+		Color:      255,
+	}
+	err = kii.UpdateState(testApp, *endNodeID, responseObj.AccessToken, request)
+	if err != nil {
+		t.Errorf("should not fail. %s", err)
+	}
+}
+
+func TestEndNodeStateFail(t *testing.T) {
+
+	type UpdateStateRequest struct {
+		Power      bool
+		Brightness int
+		Color      int
+	}
+
+	request := UpdateStateRequest{
+		Power:      true,
+		Brightness: 81,
+		Color:      255,
+	}
+	err := kii.UpdateState(testApp, "dummyID", "dummyToken", request)
+	if err == nil {
+		t.Errorf("should fail.")
 	}
 }
