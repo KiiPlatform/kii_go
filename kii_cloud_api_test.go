@@ -125,7 +125,7 @@ func GatewayOnboard() (*kii.Gateway, error) {
 	}
 	return &gateway, err
 }
-func TestGenerateEndNodeToken(t *testing.T) {
+func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	gateway, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
@@ -136,6 +136,20 @@ func TestGenerateEndNodeToken(t *testing.T) {
 	}
 	if responseObj2.AccessToken == "" {
 		t.Errorf("got response object failed")
+	}
+}
+func TestGenerateEndNodeTokenFail(t *testing.T) {
+	gateway, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	responseObj2, err2 := gateway.GenerateEndNodeToken("th.notexistThing")
+	if err2 == nil {
+		t.Errorf("should fail")
+	}
+
+	if responseObj2 != nil {
+		t.Errorf("should fail")
 	}
 }
 

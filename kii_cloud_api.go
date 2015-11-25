@@ -228,11 +228,16 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	}
 	log.Println("body: " + string(bodyStr))
 
-	err = json.Unmarshal(bodyStr, &ret)
-	if err != nil {
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	} else {
+		err = errors.New(string(bodyStr))
 		return nil, err
 	}
-	return &ret, nil
 }
 
 // Request access token of end node of gateway.
@@ -262,11 +267,17 @@ func (gw *Gateway) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeToken
 	}
 	log.Println("body: " + string(bodyStr))
 
-	err = json.Unmarshal(bodyStr, &ret)
-	if err != nil {
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	} else {
+		err = errors.New(string(bodyStr))
 		return nil, err
 	}
-	return &ret, nil
+
 }
 
 // Register Thing.
