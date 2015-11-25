@@ -92,26 +92,6 @@ func TestGatewayOnboard(t *testing.T) {
 		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
 	}
 }
-func EndNodeOnboard(au kii.APIAuthor) (string, error) {
-	requestObj := kii.OnboardGatewayRequest{
-		VendorThingID:  "dummyID",
-		ThingPassword:  "dummyPass",
-		ThingType:      "dummyType",
-		LayoutPosition: kii.ENDNODE.String(),
-		ThingProperties: map[string]interface{}{
-			"myCustomString": "str",
-			"myNumber":       1,
-			"myObject": map[string]interface{}{
-				"a": "b",
-			},
-		},
-	}
-	responseObj, err := au.OnboardGateway(requestObj)
-	if err != nil {
-		return "", err
-	}
-	return responseObj.ThingID, nil
-}
 
 func GatewayOnboard() (*kii.Gateway, error) {
 
