@@ -111,10 +111,12 @@ type Gateway struct {
 	App   App
 }
 
+// Struct for requesting end node token
 type GenerateEndNodeTokenRequest struct {
 	ExpiresIn string `json:"expires_in,omitempty"`
 }
 
+// Struct for receiving response of end node token
 type GenerateEndNodeTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int    `json:"expires_in"`
