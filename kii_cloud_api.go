@@ -239,15 +239,17 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 		if err != nil {
 			return nil, err
 		}
+		au.Token = ret.AccessToken
+		au.ID = ret.ThingID
 		return &ret, nil
 	}
 }
 
 // Request access token of end node of gateway.
 // When there's no error, GenerateEndNodeTokenResponse is returned.
-func GenerateEndNodeToken(app App, gatewayID string, gatewayToken string, endnodeID string) (*GenerateEndNodeTokenResponse, error) {
+func (au APIAuthor) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeTokenResponse, error) {
 	var ret GenerateEndNodeTokenResponse
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", app.KiiCloudBaseUrl(), gatewayID, endnodeID)
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
 
 	reqObj := GenerateEndNodeTokenRequest{
 		ExpiresIn: "",
@@ -255,7 +257,7 @@ func GenerateEndNodeToken(app App, gatewayID string, gatewayToken string, endnod
 	reqJson, _ := json.Marshal(reqObj)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+gatewayToken)
+	req.Header.Set("authorization", "bearer "+au.Token)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -271,12 +273,12 @@ func GenerateEndNodeToken(app App, gatewayID string, gatewayToken string, endnod
 
 // Add an end node thing to gateway
 // when it succeeds, error is nil
-func AddEndNode(app App, gatewayID string, gatewayToken string, endnodeID string) error {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", app.KiiCloudBaseUrl(), gatewayID, endnodeID)
+func (au APIAuthor) AddEndNode(endnodeID string) error {
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+gatewayToken)
+	req.Header.Set("authorization", "bearer "+au.Token)
 	if err != nil {
 		return err
 	}
@@ -287,7 +289,7 @@ func AddEndNode(app App, gatewayID string, gatewayToken string, endnodeID string
 
 // Register Thing.
 // Where there is no error, ThingRegisterResponse is returned
-func RegisterThing(app App, request ThingRegisterRequest) (*ThingRegisterResponse, error) {
+func (au APIAuthor) RegisterThing(request ThingRegisterRequest) (*ThingRegisterResponse, error) {
 	var ret ThingRegisterResponse
 
 	reqJson, err := json.Marshal(request)
@@ -295,14 +297,14 @@ func RegisterThing(app App, request ThingRegisterRequest) (*ThingRegisterRespons
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/things", app.KiiCloudBaseUrl())
+	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseUrl())
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
-	req.Header.Set("X-Kii-AppID", app.AppID)
-	req.Header.Set("X-Kii-AppKey", app.AppKey)
+	req.Header.Set("X-Kii-AppID", au.App.AppID)
+	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -316,14 +318,14 @@ func RegisterThing(app App, request ThingRegisterRequest) (*ThingRegisterRespons
 	}
 }
 
-func UpdateState(app App, thingID string, thingToken string, request interface{}) error {
+func (au APIAuthor) UpdateState(thingID string, thingToken string, request interface{}) error {
 
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/targets/thing:%s/states", app.ThingIFBaseUrl(), thingID)
+	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), thingID)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return err
