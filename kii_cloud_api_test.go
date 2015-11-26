@@ -18,38 +18,21 @@ func init() {
 }
 
 func TestAnonymousLogin(t *testing.T) {
-	author := kii.APIAuthor{
-		App: testApp,
-	}
-	err := author.AnonymousLogin()
+
+	author, err := kii.AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("got error on anonymous login %s", err)
 	}
 	if len(author.Token) < 1 {
 		t.Errorf("failed to get author token %+v", author)
 	}
-	if len(author.ID) < 1 {
-		t.Errorf("failed to get author ID %+v", author)
-	}
-}
-
-func AnonymousLogin() (kii.APIAuthor, error) {
-	author := kii.APIAuthor{
-		App: testApp,
-	}
-	err := author.AnonymousLogin()
-	if err != nil {
-		return author, err
-	}
-	return author, nil
 }
 
 func TestGatewayOnboard(t *testing.T) {
-	author, err := AnonymousLogin()
+	author, err := kii.AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("got error on anonymous login %s", err)
 	}
-	tokeBeforeOnboard, idBeforeOnBoard := author.Token, author.ID
 
 	requestObj := kii.OnboardGatewayRequest{
 		VendorThingID:  "dummyID",
@@ -95,19 +78,13 @@ func TestGatewayOnboard(t *testing.T) {
 	if responseObj.MqttEndpoint.PortTCP < 1 {
 		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
 	}
-	if tokeBeforeOnboard == author.Token {
-		t.Errorf("token should be updated")
-	}
-	if idBeforeOnBoard == author.ID {
-		t.Errorf("ID should be updated")
-	}
 }
 
-func GatewayOnboard() (*kii.APIAuthor, error) {
+func GatewayOnboard() (gateway *kii.APIAuthor, gatewayID *string, error error) {
 
-	author, err := AnonymousLogin()
+	author, err := kii.AnonymousLogin(testApp)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	requestObj := kii.OnboardGatewayRequest{
 		VendorThingID:  "dummyEndNodeID",
@@ -122,15 +99,16 @@ func GatewayOnboard() (*kii.APIAuthor, error) {
 			},
 		},
 	}
-	_, err1 := author.OnboardGateway(requestObj)
-	if err1 != nil {
-		return nil, err1
+	respObj, err := author.OnboardGateway(requestObj)
+	if err != nil {
+		return nil, nil, err
 	}
-	return &author, nil
+	author.Token = respObj.AccessToken
+	return author, &respObj.ThingID, nil
 }
 
 func TestGenerateEndNodeTokenSuccess(t *testing.T) {
-	au, err := GatewayOnboard()
+	au, gatewayID, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -139,11 +117,11 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = au.AddEndNode(endNodeID)
+	err = au.AddEndNode(*gatewayID, endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken(endNodeID, kii.EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, endNodeID, kii.EndNodeTokenRequest{})
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -152,11 +130,11 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	}
 }
 func TestGenerateEndNodeTokenFail(t *testing.T) {
-	au, err := GatewayOnboard()
+	au, gatewayID, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken("th.notexistThing", kii.EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, "th.notexistThing", kii.EndNodeTokenRequest{})
 	if err2 == nil {
 		t.Errorf("should fail")
 	}
@@ -167,7 +145,7 @@ func TestGenerateEndNodeTokenFail(t *testing.T) {
 }
 
 func TestRegisterEndNodeSuccess(t *testing.T) {
-	author, err := AnonymousLogin()
+	author, err := kii.AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("anonymouseLogin fail:%s", err)
 	}
@@ -208,7 +186,7 @@ func TestRegisterEndNodeSuccess(t *testing.T) {
 }
 
 func TestRegisterEndNodeFail(t *testing.T) {
-	author, err := AnonymousLogin()
+	author, err := kii.AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("anonymouseLogin fail:%s", err)
 	}
@@ -259,7 +237,7 @@ func RegisterAnEndNode(author *kii.APIAuthor) (endNodeID string, error error) {
 	}
 }
 func TestAddEndNodeSuccess(t *testing.T) {
-	author, err := GatewayOnboard()
+	author, gatewayID, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -268,7 +246,7 @@ func TestAddEndNodeSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = author.AddEndNode(endNodeID)
+	err = author.AddEndNode(*gatewayID, endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
@@ -276,18 +254,18 @@ func TestAddEndNodeSuccess(t *testing.T) {
 
 func TestAddEndNodeFail(t *testing.T) {
 
-	gateway, err := GatewayOnboard()
+	author, gatewayID, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	err = gateway.AddEndNode("dummyEndNode")
+	err = author.AddEndNode(*gatewayID, "dummyEndNode")
 	if err == nil {
 		t.Errorf("should fail")
 	}
 }
 
 func TestEndNodeStateSuccess(t *testing.T) {
-	au, err := GatewayOnboard()
+	au, gatewayID, err := GatewayOnboard()
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
@@ -296,12 +274,12 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		t.Errorf("got error when register an end node %s", err)
 	}
 
-	err = au.AddEndNode(endNodeID)
+	err = au.AddEndNode(*gatewayID, endNodeID)
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj, err := au.GenerateEndNodeToken(endNodeID, kii.EndNodeTokenRequest{})
+	responseObj, err := au.GenerateEndNodeToken(*gatewayID, endNodeID, kii.EndNodeTokenRequest{})
 	if err != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err)
 	}
@@ -319,11 +297,10 @@ func TestEndNodeStateSuccess(t *testing.T) {
 	}
 
 	endNodeAuthor := kii.APIAuthor{
-		ID:    endNodeID,
 		Token: responseObj.AccessToken,
 		App:   testApp,
 	}
-	err = endNodeAuthor.UpdateState(request)
+	err = endNodeAuthor.UpdateState(endNodeID, request)
 	if err != nil {
 		t.Errorf("should not fail. %s", err)
 	}
@@ -331,7 +308,6 @@ func TestEndNodeStateSuccess(t *testing.T) {
 
 func TestEndNodeStateFail(t *testing.T) {
 	endNodeAuthor := kii.APIAuthor{
-		ID:    "dummyID",
 		Token: "dummyToken",
 		App:   testApp,
 	}
@@ -347,7 +323,7 @@ func TestEndNodeStateFail(t *testing.T) {
 		Brightness: 81,
 		Color:      255,
 	}
-	err := endNodeAuthor.UpdateState(request)
+	err := endNodeAuthor.UpdateState("dummyID", request)
 	if err == nil {
 		t.Errorf("should fail.")
 	}
