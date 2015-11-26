@@ -149,7 +149,7 @@ type RegisterThingRequest struct {
 	LayoutPosition  string                 `json:"_layoutPosition,omitempty"`
 	Vendor          string                 `json:"_vendor,omitempty"`
 	FirmwareVersion string                 `json:"_firmwareVersion,omitempty"`
-	Iot             string                 `json:"_iot,omitempty"`
+	Lot             string                 `json:"_lot,omitempty"`
 	StringField1    string                 `json:"_stringField1,omitempty"`
 	StringField2    string                 `json:"_stringField2,omitempty"`
 	StringField3    string                 `json:"_stringField3,omitempty"`
@@ -174,7 +174,7 @@ type RegisterThingResponse struct {
 }
 
 // Login as Anonymous user.
-// When there's no error, Token is updated with Anonymous token.
+// When there's no error, APIAuthor is returned.
 func AnonymousLogin(app App) (*APIAuthor, error) {
 	type AnonymousLoginRequest struct {
 		ClientID     string `json:"client_id"`
@@ -231,7 +231,6 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 }
 
 // Let Gateway onboard to the cloud.
-// Notes that the APIAuthor must be Anonymous user.
 // When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
@@ -288,7 +287,6 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 
 // Add an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
-// when it succeeds, error is nil
 func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), gatewayID, endnodeID)
 
@@ -305,7 +303,7 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 
 // Register Thing.
 // Where there is no error, RegisterThingResponse is returned
-func RegisterThing(app App, request RegisterThingRequest) (*RegisterThingResponse, error) {
+func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingResponse, error) {
 	var ret RegisterThingResponse
 
 	reqJson, err := json.Marshal(request)
@@ -313,14 +311,14 @@ func RegisterThing(app App, request RegisterThingRequest) (*RegisterThingRespons
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/things", app.KiiCloudBaseUrl())
+	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseUrl())
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
-	req.Header.Set("X-Kii-AppID", app.AppID)
-	req.Header.Set("X-Kii-AppKey", app.AppKey)
+	req.Header.Set("X-Kii-AppID", au.App.AppID)
+	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
