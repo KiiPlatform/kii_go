@@ -160,6 +160,50 @@ type ThingRegisterResponse struct {
 	Disabled       bool   `json:"_disabled"`
 }
 
+// Struct for requiest registration of KiiUser.
+// At least one of LoginName, EmailAddress or PhoneNumber must be provided.
+type KiiUserRegisterRequest struct {
+	LoginName           string `json:"loginName,omitempty"`
+	DisplayName         string `json:"displayName,omitempty"`
+	Country             string `json:"country,omitempty"`
+	Locale              string `json:"locale,omitempty"`
+	EmailAddress        string `json:"emailAddress,omitempty"`
+	PhoneNumber         string `json:"phoneNumber,omitempty"`
+	PhoneNumberVerified bool   `json:"phoneNumberVerified,omitempty"`
+	Password            string `json:"password"`
+}
+
+// Struct for receiving registration of KiiUser.
+type KiiUserRegisterResponse struct {
+	UserID              string `json:"userID"`
+	LoginName           string `json:"loginName"`
+	DisplayName         string `json:"displayName"`
+	Country             string `json:"country"`
+	Locale              string `json:"locale"`
+	EmailAddress        string `json:"emailAddress"`
+	PhoneNumber         string `json:"phoneNumber"`
+	PhoneNumberVerified bool   `json:"phoneNumberVerified"`
+	HasPassword         bool   `json:"_hasPassword"`
+}
+
+// Struct for requesting login of KiiUser
+type KiiUserLoginRequest struct {
+	UserName     string `json:"username"`
+	Password     string `json:"password"`
+	ExpiresAt    string `json:"expiresAt,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	GrantType    string `json:"grant_type,omitempty"`
+}
+
+// Struct for receiving response of login
+type KiiUserLoginResponse struct {
+	ID           string `json:"id"`
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 // Login as Anonymous user.
 // When there's no error, Token is updated with Anonymous token.
 func (au *APIAuthor) AnonymousLogin() error {
@@ -318,6 +362,7 @@ func (au APIAuthor) RegisterThing(request ThingRegisterRequest) (*ThingRegisterR
 	}
 }
 
+// Update state of a Thing
 func (au APIAuthor) UpdateState(thingID string, thingToken string, request interface{}) error {
 
 	reqJson, err := json.Marshal(request)
@@ -326,6 +371,105 @@ func (au APIAuthor) UpdateState(thingID string, thingToken string, request inter
 	}
 
 	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), thingID)
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("authorization", "bearer "+thingToken)
+
+	_, err1 := executeRequest(*req)
+	return err1
+}
+
+// Login as KiiUser.
+// If there is no error, KiiUserLoginResponse is returned.
+func (au *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginResponse, error) {
+	var ret KiiUserLoginResponse
+
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("https://%s/api/oauth2/token", au.App.HostName())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("X-Kii-AppID", au.App.AppID)
+	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
+	log.Printf("login request body:%s", string(reqJson))
+	bodyStr, err := executeRequest(*req)
+	if err != nil {
+		return nil, err
+	} else {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		au.ID = ret.ID
+		au.Token = ret.AccessToken
+		return &ret, nil
+	}
+
+}
+
+// Register KiiUser
+// If there is no error, KiiUserRegisterResponse is returned.
+func (au *APIAuthor) RegisterKiiUser(request KiiUserRegisterRequest) (*KiiUserRegisterResponse, error) {
+	var ret KiiUserRegisterResponse
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/users", au.App.KiiCloudBaseUrl())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("X-Kii-AppID", au.App.AppID)
+	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
+	bodyStr, err := executeRequest(*req)
+	if err != nil {
+		return nil, err
+	} else {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
+
+}
+
+func (au APIAuthor) PostCommand(thingID string, thingToken string, request interface{}) error {
+
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("%s/target/THING:%s/commands", au.App.ThingIFBaseUrl(), thingID)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("authorization", "bearer "+thingToken)
+
+	_, err = executeRequest(*req)
+	return err
+}
+
+func (au APIAuthor) UpdateCommandResults(thingID string, thingToken string, commandID string, request interface{}) error {
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("%s/targets/thing:%s/commands/%s/action-results", au.App.ThingIFBaseUrl(), thingID, commandID)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return err

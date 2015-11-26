@@ -346,3 +346,109 @@ func TestEndNodeStateFail(t *testing.T) {
 		t.Errorf("should fail.")
 	}
 }
+
+func TestRegisterAndLoginKiiUserSuccess(t *testing.T) {
+	author := kii.APIAuthor{
+		Token: "",
+		ID:    "",
+		App:   testApp,
+	}
+
+	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
+	requestObj := kii.KiiUserRegisterRequest{
+		LoginName: userName,
+		Password:  "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err != nil {
+		t.Errorf("register kiiuser failed. %s", err)
+	}
+
+	loginReqObj := kii.KiiUserLoginRequest{
+		UserName: resp.LoginName,
+		Password: "dummyPassword",
+	}
+	loginResp, err := author.LoginAsKiiUser(loginReqObj)
+	if err != nil {
+		t.Errorf("login as kiiuser failed. %s", err)
+	}
+	if author.ID != loginResp.ID {
+		t.Errorf("user id is not correct")
+	}
+	if author.Token != loginResp.AccessToken {
+		t.Errorf("access token is not correct")
+	}
+}
+
+func TestRegisterKiiUserFail(t *testing.T) {
+	author := kii.APIAuthor{
+		Token: "",
+		ID:    "",
+		App:   testApp,
+	}
+
+	requestObj := kii.KiiUserRegisterRequest{
+		Password: "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if resp != nil {
+		t.Errorf("should be nil")
+	}
+}
+
+func TestLoginAsKiiUserFail(t *testing.T) {
+	author := kii.APIAuthor{
+		Token: "",
+		ID:    "",
+		App:   testApp,
+	}
+
+	loginReqObj := kii.KiiUserLoginRequest{
+		UserName: "dummyUser",
+		Password: "dummyPassword",
+	}
+	loginResp, err := author.LoginAsKiiUser(loginReqObj)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if loginResp != nil {
+		t.Errorf("should be nil")
+	}
+	if author.ID != "" {
+		t.Errorf("user id should not be updated")
+	}
+	if author.Token != "" {
+		t.Errorf("access token should not be updated")
+	}
+}
+
+func GetLoginKiiUser() (*kii.APIAuthor, error) {
+	author := kii.APIAuthor{
+		Token: "",
+		ID:    "",
+		App:   testApp,
+	}
+
+	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
+	requestObj := kii.KiiUserRegisterRequest{
+		LoginName: userName,
+		Password:  "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err != nil {
+		return nil, err
+	}
+
+	loginReqObj := kii.KiiUserLoginRequest{
+		UserName: resp.LoginName,
+		Password: "dummyPassword",
+	}
+	_, err = author.LoginAsKiiUser(loginReqObj)
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
+}
