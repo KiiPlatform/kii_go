@@ -274,6 +274,7 @@ func (au APIAuthor) GenerateEndNodeToken(endnodeID string, request EndNodeTokenR
 }
 
 // Add an end node thing to gateway
+// Notes that the APIAuthor should be a Gateway
 // when it succeeds, error is nil
 func (au APIAuthor) AddEndNode(endnodeID string) error {
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
