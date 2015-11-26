@@ -122,6 +122,7 @@ type MqttEndpoint struct {
 }
 
 // Struct represents API author.
+// Can be Gateway, EndNode or KiiUser.
 type APIAuthor struct {
 	Token string
 	ID    string
@@ -129,12 +130,12 @@ type APIAuthor struct {
 }
 
 // Struct for requesting end node token
-type GenerateEndNodeTokenRequest struct {
+type EndNodeTokenRequest struct {
 	ExpiresIn string `json:"expires_in,omitempty"`
 }
 
 // Struct for receiving response of end node token
-type GenerateEndNodeTokenResponse struct {
+type EndNodeTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int    `json:"expires_in"`
 	ThingID      string `json:"id"`
@@ -142,7 +143,7 @@ type GenerateEndNodeTokenResponse struct {
 }
 
 // Struct for requesting Thing Registration.
-type ThingRegisterRequest struct {
+type RegisterThingRequest struct {
 	VendorThingID   string                 `json:"_vendorThingID"`
 	ThingPassword   string                 `json:"_password"`
 	ThingType       string                 `json:"_thingType"`
@@ -151,7 +152,7 @@ type ThingRegisterRequest struct {
 }
 
 // Struct for receiving response of end node token
-type ThingRegisterResponse struct {
+type RegisterThingResponse struct {
 	ThingID        string `json:"_thingID"`
 	VendorThingID  string `json:"_vendorThingID"`
 	ThingType      string `json:"_thingType"`
@@ -229,7 +230,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
-	req.Header.Set("authorization", "bearer "+au.Token)
+	req.Header.Set("authorization", "Bearer "+au.Token)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -246,18 +247,19 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 }
 
 // Request access token of end node of gateway.
-// When there's no error, GenerateEndNodeTokenResponse is returned.
-func (au APIAuthor) GenerateEndNodeToken(endnodeID string) (*GenerateEndNodeTokenResponse, error) {
-	var ret GenerateEndNodeTokenResponse
+// Notes the APIAuthor should be a Gateway.
+// When there's no error, EndNodeTokenResponse is returned.
+func (au APIAuthor) GenerateEndNodeToken(endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
+	var ret EndNodeTokenResponse
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
 
-	reqObj := GenerateEndNodeTokenRequest{
-		ExpiresIn: "",
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
 	}
-	reqJson, _ := json.Marshal(reqObj)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+au.Token)
+	req.Header.Set("authorization", "Bearer "+au.Token)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -278,7 +280,7 @@ func (au APIAuthor) AddEndNode(endnodeID string) error {
 
 	req, err := http.NewRequest("PUT", url, nil)
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+au.Token)
+	req.Header.Set("authorization", "Bearer "+au.Token)
 	if err != nil {
 		return err
 	}
@@ -288,9 +290,9 @@ func (au APIAuthor) AddEndNode(endnodeID string) error {
 }
 
 // Register Thing.
-// Where there is no error, ThingRegisterResponse is returned
-func (au APIAuthor) RegisterThing(request ThingRegisterRequest) (*ThingRegisterResponse, error) {
-	var ret ThingRegisterResponse
+// Where there is no error, RegisterThingResponse is returned
+func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingResponse, error) {
+	var ret RegisterThingResponse
 
 	reqJson, err := json.Marshal(request)
 	if err != nil {
@@ -318,20 +320,22 @@ func (au APIAuthor) RegisterThing(request ThingRegisterRequest) (*ThingRegisterR
 	}
 }
 
-func (au APIAuthor) UpdateState(thingID string, thingToken string, request interface{}) error {
+// Update Thing state.
+// Notes that the APIAuthor should be already initialized as a Gateway or EndNode
+func (au APIAuthor) UpdateState(request interface{}) error {
 
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), thingID)
+	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), au.ID)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "bearer "+thingToken)
+	req.Header.Set("authorization", "Bearer "+au.Token)
 
 	_, err1 := executeRequest(*req)
 	return err1

@@ -143,8 +143,7 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
-
-	responseObj2, err2 := au.GenerateEndNodeToken(endNodeID)
+	responseObj2, err2 := au.GenerateEndNodeToken(endNodeID, kii.EndNodeTokenRequest{})
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -157,7 +156,7 @@ func TestGenerateEndNodeTokenFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken("th.notexistThing")
+	responseObj2, err2 := au.GenerateEndNodeToken("th.notexistThing", kii.EndNodeTokenRequest{})
 	if err2 == nil {
 		t.Errorf("should fail")
 	}
@@ -174,7 +173,7 @@ func TestRegisterEndNodeSuccess(t *testing.T) {
 	}
 
 	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
-	requestObj := kii.ThingRegisterRequest{
+	requestObj := kii.RegisterThingRequest{
 		VendorThingID:  VendorThingID,
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
@@ -214,7 +213,7 @@ func TestRegisterEndNodeFail(t *testing.T) {
 		t.Errorf("anonymouseLogin fail:%s", err)
 	}
 
-	requestObj := kii.ThingRegisterRequest{
+	requestObj := kii.RegisterThingRequest{
 		VendorThingID:  "",
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
@@ -239,7 +238,7 @@ func TestRegisterEndNodeFail(t *testing.T) {
 func RegisterAnEndNode(author *kii.APIAuthor) (endNodeID string, error error) {
 
 	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
-	requestObj := kii.ThingRegisterRequest{
+	requestObj := kii.RegisterThingRequest{
 		VendorThingID:  VendorThingID,
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
@@ -302,7 +301,7 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj, err := au.GenerateEndNodeToken(endNodeID)
+	responseObj, err := au.GenerateEndNodeToken(endNodeID, kii.EndNodeTokenRequest{})
 	if err != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err)
 	}
@@ -318,16 +317,23 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		Brightness: 81,
 		Color:      255,
 	}
-	err = au.UpdateState(endNodeID, responseObj.AccessToken, request)
+
+	endNodeAuthor := kii.APIAuthor{
+		ID:    endNodeID,
+		Token: responseObj.AccessToken,
+		App:   testApp,
+	}
+	err = endNodeAuthor.UpdateState(request)
 	if err != nil {
 		t.Errorf("should not fail. %s", err)
 	}
 }
 
 func TestEndNodeStateFail(t *testing.T) {
-	author, err := AnonymousLogin()
-	if err != nil {
-		t.Errorf("anonymouseLogin fail:%s", err)
+	endNodeAuthor := kii.APIAuthor{
+		ID:    "dummyID",
+		Token: "dummyToken",
+		App:   testApp,
 	}
 
 	type UpdateStateRequest struct {
@@ -341,7 +347,7 @@ func TestEndNodeStateFail(t *testing.T) {
 		Brightness: 81,
 		Color:      255,
 	}
-	err = author.UpdateState("dummyID", "dummyToken", request)
+	err := endNodeAuthor.UpdateState(request)
 	if err == nil {
 		t.Errorf("should fail.")
 	}
