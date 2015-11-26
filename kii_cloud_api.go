@@ -172,7 +172,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
-	req.Header.Set("authorization", "bearer " + au.Token)
+	req.Header.Set("authorization", "Bearer " + au.Token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
