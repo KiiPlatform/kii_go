@@ -122,10 +122,9 @@ type MqttEndpoint struct {
 }
 
 // Struct represents API author.
-// Can be Gateway, EndNode or KiiUser.
+// Can be Gateway, EndNode or KiiUser, depending on the token.
 type APIAuthor struct {
 	Token string
-	ID    string
 	App   App
 }
 
@@ -146,8 +145,21 @@ type EndNodeTokenResponse struct {
 type RegisterThingRequest struct {
 	VendorThingID   string                 `json:"_vendorThingID"`
 	ThingPassword   string                 `json:"_password"`
-	ThingType       string                 `json:"_thingType"`
-	LayoutPosition  string                 `json:"_layoutPosition"`
+	ThingType       string                 `json:"_thingType,omitempty"`
+	LayoutPosition  string                 `json:"_layoutPosition,omitempty"`
+	Vendor          string                 `json:"_vendor,omitempty"`
+	FirmwareVersion string                 `json:"_firmwareVersion,omitempty"`
+	Iot             string                 `json:"_iot,omitempty"`
+	StringField1    string                 `json:"_stringField1,omitempty"`
+	StringField2    string                 `json:"_stringField2,omitempty"`
+	StringField3    string                 `json:"_stringField3,omitempty"`
+	StringField4    string                 `json:"_stringField4,omitempty"`
+	StringField5    string                 `json:"_stringField5,omitempty"`
+	NumberField1    int64                  `json:"_numberField1,omitempty"`
+	NumberField2    int64                  `json:"_numberField2,omitempty"`
+	NumberField3    int64                  `json:"_numberField3,omitempty"`
+	NumberField4    int64                  `json:"_numberField4,omitempty"`
+	NumberField5    int64                  `json:"_numberField5,omitempty"`
 	ThingProperties map[string]interface{} `json:"thingProperties"`
 }
 
@@ -163,38 +175,38 @@ type RegisterThingResponse struct {
 
 // Login as Anonymous user.
 // When there's no error, Token is updated with Anonymous token.
-func (au *APIAuthor) AnonymousLogin() error {
+func AnonymousLogin(app App) (*APIAuthor, error) {
 	type AnonymousLoginRequest struct {
 		ClientID     string `json:"client_id"`
 		ClientSecret string `json:"client_secret"`
 		GrantType    string `json:"grant_type"`
 	}
 	type AnonymousLoginResponse struct {
-		ID           string `json:"id"`
-		Access_token string `json:"access_token"`
-		Expires_in   int    `json:"expires_in"`
-		Token_type   string `json:"token_type"`
+		ID          string `json:"id"`
+		AccessToken string `json:"access_token"`
+		ExpiresIn   int    `json:"expires_in"`
+		TokenType   string `json:"token_type"`
 	}
 	reqObj := AnonymousLoginRequest{
-		ClientID:     au.App.AppID,
-		ClientSecret: au.App.AppKey,
+		ClientID:     app.AppID,
+		ClientSecret: app.AppKey,
 		GrantType:    "client_credentials",
 	}
 	reqJson, err := json.Marshal(reqObj)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	url := fmt.Sprintf("%s/oauth2/token", au.App.KiiCloudBaseUrl())
+	url := fmt.Sprintf("%s/oauth2/token", app.KiiCloudBaseUrl())
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("content-type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -202,21 +214,24 @@ func (au *APIAuthor) AnonymousLogin() error {
 
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Println("body: " + string(bodyStr))
 
 	var respObj AnonymousLoginResponse
 	err = json.Unmarshal(bodyStr, &respObj)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	au.Token = respObj.Access_token
-	au.ID = respObj.ID
-	return nil
+	au := APIAuthor{
+		Token: respObj.AccessToken,
+		App:   app,
+	}
+	return &au, nil
 }
 
 // Let Gateway onboard to the cloud.
+// Notes that the APIAuthor must be Anonymous user.
 // When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
@@ -240,8 +255,6 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 		if err != nil {
 			return nil, err
 		}
-		au.Token = ret.AccessToken
-		au.ID = ret.ThingID
 		return &ret, nil
 	}
 }
@@ -249,9 +262,9 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 // Request access token of end node of gateway.
 // Notes the APIAuthor should be a Gateway.
 // When there's no error, EndNodeTokenResponse is returned.
-func (au APIAuthor) GenerateEndNodeToken(endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
+func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
 	var ret EndNodeTokenResponse
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseUrl(), gatewayID, endnodeID)
 
 	reqJson, err := json.Marshal(request)
 	if err != nil {
@@ -276,8 +289,8 @@ func (au APIAuthor) GenerateEndNodeToken(endnodeID string, request EndNodeTokenR
 // Add an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
 // when it succeeds, error is nil
-func (au APIAuthor) AddEndNode(endnodeID string) error {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), au.ID, endnodeID)
+func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), gatewayID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
 	req.Header.Set("content-type", "application/json")
@@ -292,7 +305,7 @@ func (au APIAuthor) AddEndNode(endnodeID string) error {
 
 // Register Thing.
 // Where there is no error, RegisterThingResponse is returned
-func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingResponse, error) {
+func RegisterThing(app App, request RegisterThingRequest) (*RegisterThingResponse, error) {
 	var ret RegisterThingResponse
 
 	reqJson, err := json.Marshal(request)
@@ -300,14 +313,14 @@ func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingR
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseUrl())
+	url := fmt.Sprintf("%s/things", app.KiiCloudBaseUrl())
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
-	req.Header.Set("X-Kii-AppID", au.App.AppID)
-	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
+	req.Header.Set("X-Kii-AppID", app.AppID)
+	req.Header.Set("X-Kii-AppKey", app.AppKey)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -323,14 +336,14 @@ func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingR
 
 // Update Thing state.
 // Notes that the APIAuthor should be already initialized as a Gateway or EndNode
-func (au APIAuthor) UpdateState(request interface{}) error {
+func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), au.ID)
+	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), thingID)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
 	if err != nil {
 		return err
