@@ -104,7 +104,7 @@ type OnboardGatewayRequest struct {
 }
 
 // Struct for receiving response of Gateway Onboard.
-type OnboardGatewayResponse struct {
+type OnboardResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
 	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
@@ -172,7 +172,7 @@ type RegisterThingResponse struct {
 	Disabled       bool   `json:"_disabled"`
 }
 
-// Struct for requiest registration of KiiUser.
+// Struct for request registration of KiiUser.
 // At least one of LoginName, EmailAddress or PhoneNumber must be provided.
 type KiiUserRegisterRequest struct {
 	LoginName           string `json:"loginName,omitempty"`
@@ -214,6 +214,38 @@ type KiiUserLoginResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 	TokenType    string `json:"token_type"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+// Struct for posting command
+// Issuer can be group or user.
+// If user, must be "user:<user-id>".
+type PostCommandRequest struct {
+	Issuer           string                   `json:"issuer"`
+	Actions          []map[string]interface{} `json:"actions"`
+	Schema           string                   `json:"schema"`
+	SchemaVersion    int                      `json:"schemaVersion"`
+	FiredByTriggerID string                   `json:"firedByTriggerID,omitempty"`
+	Titlle           string                   `json:"title,omitempty"`
+	Description      string                   `json:"description,omitempty"`
+	Metadata         map[string]interface{}   `json:"metadata,omitempty"`
+}
+
+// Struct for receiving response of posting command
+type PostCommandResponse struct {
+	CommandID string `json:"commandID"`
+}
+
+// Struct for requesting Onboard by Thing Owner.
+type OnboardByOwnerRequest struct {
+	ThingID        string `json:"thingID"`
+	ThingPassword  string `json:"thingPassword"`
+	Owner          string `json:"owner"`
+	LayoutPosition string `json:"layoutPosition,omitempty"` // pattern: GATEWAY|STANDALONE|ENDNODE, STANDALONE by default
+}
+
+// Struct for updating command results
+type UpdateCommandResultsRequest struct {
+	ActionResults []map[string]interface{} `json:"actionResults"`
 }
 
 // Login as Anonymous user.
@@ -274,9 +306,9 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 }
 
 // Let Gateway onboard to the cloud.
-// When there's no error, OnboardGatewayResponse is returned.
-func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
-	var ret OnboardGatewayResponse
+// When there's no error, OnboardResponse is returned.
+func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardResponse, error) {
+	var ret OnboardResponse
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -404,9 +436,10 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 
 // Login as KiiUser.
 // If there is no error, KiiUserLoginResponse is returned.
+// Notes that after login successfully, api doesn't update token of APIAuthor,
+// you should update by yourself with the token in response.
 func (au *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginResponse, error) {
 	var ret KiiUserLoginResponse
-
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -462,26 +495,37 @@ func (au *APIAuthor) RegisterKiiUser(request KiiUserRegisterRequest) (*KiiUserRe
 
 }
 
-func (au APIAuthor) PostCommand(thingID string, request interface{}) error {
-
+// Post command to Thing.
+// Notes that it requires Thing already onboard.
+// If there is no error, PostCommandRequest is returned.
+func (au APIAuthor) PostCommand(thingID string, request PostCommandRequest) (*PostCommandResponse, error) {
+	var ret PostCommandResponse
 	reqJson, err := json.Marshal(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/target/THING:%s/commands", au.App.ThingIFBaseUrl(), thingID)
+	url := fmt.Sprintf("%s/targets/THING:%s/commands", au.App.ThingIFBaseUrl(), thingID)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", "Bearer "+au.Token)
-
-	_, err = executeRequest(*req)
-	return err
+	bodyStr, err := executeRequest(*req)
+	if err != nil {
+		return nil, err
+	} else {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
 }
 
-func (au APIAuthor) UpdateCommandResults(thingID string, commandID string, request interface{}) error {
+// Update command results
+func (au APIAuthor) UpdateCommandResults(thingID string, commandID string, request UpdateCommandResultsRequest) error {
 	reqJson, err := json.Marshal(request)
 	if err != nil {
 		return err
@@ -497,4 +541,30 @@ func (au APIAuthor) UpdateCommandResults(thingID string, commandID string, reque
 
 	_, err = executeRequest(*req)
 	return err
+}
+
+func (au *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardResponse, error) {
+	var ret OnboardResponse
+	reqJson, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseUrl())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("content-type", "application/vnd.kii.OnboardingWithThingIDByOwner+json")
+	req.Header.Set("authorization", "Bearer "+au.Token)
+
+	bodyStr, err := executeRequest(*req)
+	if err != nil {
+		return nil, err
+	} else {
+		err = json.Unmarshal(bodyStr, &ret)
+		if err != nil {
+			return nil, err
+		}
+		return &ret, nil
+	}
 }
