@@ -151,17 +151,24 @@ func TestRegisterEndNodeSuccess(t *testing.T) {
 	}
 
 	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
-	requestObj := kii.RegisterThingRequest{
-		VendorThingID:  VendorThingID,
-		ThingPassword:  "dummyPass",
-		ThingType:      "dummyType",
-		LayoutPosition: kii.ENDNODE.String(),
-		ThingProperties: map[string]interface{}{
-			"myCustomString": "str",
-			"myNumber":       1,
-			"myObject": map[string]interface{}{
-				"a": "b",
-			},
+	type MyRegisterThingRequest struct {
+		kii.RegisterThingRequest
+		MyCustomString string                 `json:"myCustomString"`
+		MyNumber       int                    `json:"myNumber"`
+		MyObject       map[string]interface{} `json:"myObject"`
+	}
+	requestObj := MyRegisterThingRequest{
+
+		RegisterThingRequest: kii.RegisterThingRequest{
+			VendorThingID:  VendorThingID,
+			ThingPassword:  "dummyPass",
+			ThingType:      "dummyType",
+			LayoutPosition: kii.ENDNODE.String(),
+		},
+		MyCustomString: "str",
+		MyNumber:       1,
+		MyObject: map[string]interface{}{
+			"a": "b",
 		},
 	}
 	responseObj, err := author.RegisterThing(requestObj)
@@ -196,13 +203,6 @@ func TestRegisterEndNodeFail(t *testing.T) {
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
 		LayoutPosition: kii.ENDNODE.String(),
-		ThingProperties: map[string]interface{}{
-			"myCustomString": "str",
-			"myNumber":       1,
-			"myObject": map[string]interface{}{
-				"a": "b",
-			},
-		},
 	}
 	responseObj, err := author.RegisterThing(requestObj)
 	if err == nil {
@@ -221,13 +221,6 @@ func RegisterAnEndNode(author *kii.APIAuthor) (endNodeID string, error error) {
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
 		LayoutPosition: kii.ENDNODE.String(),
-		ThingProperties: map[string]interface{}{
-			"myCustomString": "str",
-			"myNumber":       1,
-			"myObject": map[string]interface{}{
-				"a": "b",
-			},
-		},
 	}
 	responseObj, err := author.RegisterThing(requestObj)
 	if err != nil {

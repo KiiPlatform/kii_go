@@ -141,26 +141,25 @@ type EndNodeTokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// Struct for requesting Thing Registration.
+// Struct of predefined fileds for requesting Thing Registration.
 type RegisterThingRequest struct {
-	VendorThingID   string                 `json:"_vendorThingID"`
-	ThingPassword   string                 `json:"_password"`
-	ThingType       string                 `json:"_thingType,omitempty"`
-	LayoutPosition  string                 `json:"_layoutPosition,omitempty"`
-	Vendor          string                 `json:"_vendor,omitempty"`
-	FirmwareVersion string                 `json:"_firmwareVersion,omitempty"`
-	Lot             string                 `json:"_lot,omitempty"`
-	StringField1    string                 `json:"_stringField1,omitempty"`
-	StringField2    string                 `json:"_stringField2,omitempty"`
-	StringField3    string                 `json:"_stringField3,omitempty"`
-	StringField4    string                 `json:"_stringField4,omitempty"`
-	StringField5    string                 `json:"_stringField5,omitempty"`
-	NumberField1    int64                  `json:"_numberField1,omitempty"`
-	NumberField2    int64                  `json:"_numberField2,omitempty"`
-	NumberField3    int64                  `json:"_numberField3,omitempty"`
-	NumberField4    int64                  `json:"_numberField4,omitempty"`
-	NumberField5    int64                  `json:"_numberField5,omitempty"`
-	ThingProperties map[string]interface{} `json:"thingProperties"`
+	VendorThingID   string `json:"_vendorThingID"`
+	ThingPassword   string `json:"_password"`
+	ThingType       string `json:"_thingType,omitempty"`
+	LayoutPosition  string `json:"_layoutPosition,omitempty"`
+	Vendor          string `json:"_vendor,omitempty"`
+	FirmwareVersion string `json:"_firmwareVersion,omitempty"`
+	Lot             string `json:"_lot,omitempty"`
+	StringField1    string `json:"_stringField1,omitempty"`
+	StringField2    string `json:"_stringField2,omitempty"`
+	StringField3    string `json:"_stringField3,omitempty"`
+	StringField4    string `json:"_stringField4,omitempty"`
+	StringField5    string `json:"_stringField5,omitempty"`
+	NumberField1    int64  `json:"_numberField1,omitempty"`
+	NumberField2    int64  `json:"_numberField2,omitempty"`
+	NumberField3    int64  `json:"_numberField3,omitempty"`
+	NumberField4    int64  `json:"_numberField4,omitempty"`
+	NumberField5    int64  `json:"_numberField5,omitempty"`
 }
 
 // Struct for receiving response of end node token
@@ -302,8 +301,14 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 }
 
 // Register Thing.
+// The request must consist of the predefined fields(see RegisterThingRequest).
+// If you want to add the custom fileds, you can simply make RegisterThingRequest as anonymous field of your defined request struct, like:
+//  type MyRegisterThingRequest struct {
+//    RegisterThingRequest
+//    MyField1             string
+//  }
 // Where there is no error, RegisterThingResponse is returned
-func (au APIAuthor) RegisterThing(request RegisterThingRequest) (*RegisterThingResponse, error) {
+func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, error) {
 	var ret RegisterThingResponse
 
 	reqJson, err := json.Marshal(request)
