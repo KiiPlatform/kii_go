@@ -354,6 +354,8 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	_, err1 := executeRequest(*req)
-	return err1
+	if _, err := executeRequest(*req); err != nil {
+		return err
+	}
+	return nil
 }
