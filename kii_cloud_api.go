@@ -74,8 +74,7 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
-func executeRequest(request http.Request) (respBody []byte, error error) {
-
+func executeRequest(request http.Request) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(&request)
 	if err != nil {
@@ -83,17 +82,18 @@ func executeRequest(request http.Request) (respBody []byte, error error) {
 	}
 	defer resp.Body.Close()
 
-	bodyStr, err := ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	log.Println("body: " + string(bodyStr))
 
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		return bodyStr, nil
+	// TODO: should be removed after debug.
+	log.Println("body: " + string(b))
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		return nil, errors.New(string(b))
 	}
-	err = errors.New(string(bodyStr))
-	return nil, err
+	return b, nil
 }
 
 // Struct for requesting Gateway Onboard.
