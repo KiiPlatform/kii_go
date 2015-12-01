@@ -91,10 +91,9 @@ func executeRequest(request http.Request) (respBody []byte, error error) {
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
 		return bodyStr, nil
-	} else {
-		err = errors.New(string(bodyStr))
-		return nil, err
 	}
+	err = errors.New(string(bodyStr))
+	return nil, err
 }
 
 // Struct for requesting Gateway Onboard.
@@ -251,13 +250,12 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
 		return nil, err
-	} else {
-		err = json.Unmarshal(bodyStr, &ret)
-		if err != nil {
-			return nil, err
-		}
-		return &ret, nil
 	}
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 // Request access token of end node of gateway.
@@ -278,13 +276,12 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
 		return nil, err
-	} else {
-		err = json.Unmarshal(bodyStr, &ret)
-		if err != nil {
-			return nil, err
-		}
-		return &ret, nil
 	}
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 // Add an end node thing to gateway
@@ -331,13 +328,12 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
 		return nil, err
-	} else {
-		err = json.Unmarshal(bodyStr, &ret)
-		if err != nil {
-			return nil, err
-		}
-		return &ret, nil
 	}
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 // Update Thing state.
