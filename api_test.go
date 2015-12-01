@@ -48,7 +48,7 @@ func TestGatewayOnboard(t *testing.T) {
 			},
 		},
 	}
-	responseObj, err := author.OnboardGateway(requestObj)
+	responseObj, err := author.OnboardGateway(&requestObj)
 	if err != nil {
 		t.Errorf("got error on Onboarding %s", err)
 	}
@@ -100,7 +100,7 @@ func GatewayOnboard() (gateway *APIAuthor, gatewayID *string, error error) {
 			},
 		},
 	}
-	respObj, err := author.OnboardGateway(requestObj)
+	respObj, err := author.OnboardGateway(&requestObj)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -122,7 +122,7 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, endNodeID, EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, endNodeID, &EndNodeTokenRequest{})
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -135,7 +135,7 @@ func TestGenerateEndNodeTokenFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, "th.notexistThing", EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, "th.notexistThing", &EndNodeTokenRequest{})
 	if err2 == nil {
 		t.Errorf("should fail")
 	}
@@ -272,7 +272,7 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj, err := au.GenerateEndNodeToken(*gatewayID, endNodeID, EndNodeTokenRequest{})
+	responseObj, err := au.GenerateEndNodeToken(*gatewayID, endNodeID, &EndNodeTokenRequest{})
 	if err != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err)
 	}

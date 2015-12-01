@@ -1,9 +1,7 @@
 package kii
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -43,28 +41,6 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
-func executeRequest(req *http.Request) ([]byte, error) {
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME: should be removed after debug?
-	Logger.Println("body: " + string(b))
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		return nil, errors.New(string(b))
-	}
-	return b, nil
-}
-
 // Struct for requesting Gateway Onboard.
 type OnboardGatewayRequest struct {
 	VendorThingID   string                 `json:"vendorThingID"`
@@ -72,6 +48,12 @@ type OnboardGatewayRequest struct {
 	ThingType       string                 `json:"thingType"`
 	LayoutPosition  string                 `json:"layoutPosition"`
 	ThingProperties map[string]interface{} `json:"thingProperties"`
+}
+
+var _ contentTyper = (*OnboardGatewayRequest)(nil)
+
+func (r *OnboardGatewayRequest) contentType() string {
+	return "application/vnd.kii.onboardingWithVendorThingIDByThing+json"
 }
 
 // Struct for receiving response of Gateway Onboard.
@@ -155,16 +137,10 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 		ClientSecret: app.AppKey,
 		GrantType:    "client_credentials",
 	}
-	reqJSON, err := json.Marshal(reqObj)
+	req, err := newRequest("POST", app.CloudURL("/oauth2/token"), &reqObj)
 	if err != nil {
 		return nil, err
 	}
-	url := app.CloudURL("/oauth2/token")
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
