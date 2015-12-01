@@ -73,9 +73,9 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
-func executeRequest(request http.Request) ([]byte, error) {
+func executeRequest(req *http.Request) ([]byte, error) {
 	client := &http.Client{}
-	resp, err := client.Do(&request)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	req.Header.Set("Content-Type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
 	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	bodyStr, err := executeRequest(*req)
+	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	bodyStr, err := executeRequest(*req)
+	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	if _, err := executeRequest(*req); err != nil{
+	if _, err := executeRequest(req); err != nil{
 		return err
 	}
 	return nil
@@ -325,7 +325,7 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 	req.Header.Set("X-Kii-AppID", au.App.AppID)
 	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
 
-	bodyStr, err := executeRequest(*req)
+	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +354,7 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	if _, err := executeRequest(*req); err != nil {
+	if _, err := executeRequest(req); err != nil {
 		return err
 	}
 	return nil
