@@ -21,8 +21,8 @@ type App struct {
 }
 
 // HostName returns host name of the Application endpoint.
-func (ka *App) HostName() string {
-	lowerLoc := strings.ToLower(ka.AppLocation)
+func (a *App) HostName() string {
+	lowerLoc := strings.ToLower(a.AppLocation)
 	switch lowerLoc {
 	case "jp":
 		return "api-jp.kii.com"
@@ -38,13 +38,13 @@ func (ka *App) HostName() string {
 }
 
 // ThingIFBaseURL returns thing-if endpoint base url.
-func (ka *App) ThingIFBaseURL() string {
-	return fmt.Sprintf("https://%s/thing-if/apps/%s", ka.HostName(), ka.AppID)
+func (a *App) ThingIFBaseURL() string {
+	return fmt.Sprintf("https://%s/thing-if/apps/%s", a.HostName(), a.AppID)
 }
 
 // KiiCloudBaseURL returns Kii Cloud endpoint base url.
-func (ka *App) KiiCloudBaseURL() string {
-	return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
+func (a *App) KiiCloudBaseURL() string {
+	return fmt.Sprintf("https://%s/api/apps/%s", a.HostName(), a.AppID)
 }
 
 // LayoutPosition represents Layout position of the Thing.
