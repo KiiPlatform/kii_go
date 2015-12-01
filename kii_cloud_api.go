@@ -69,8 +69,7 @@ func (lp LayoutPosition) String() string {
 	case GATEWAY:
 		return "GATEWAY"
 	default:
-		log.Fatal("never reache here")
-		return "invalid layout"
+		return fmt.Sprintf("!LayoutPosition(%d)", lp)
 	}
 }
 
