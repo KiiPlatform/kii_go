@@ -1,16 +1,15 @@
-package kii_test
+package kii
 
 import (
 	"fmt"
-	kii "github.com/KiiPlatform/kii_go"
 	"testing"
 	"time"
 )
 
-var testApp kii.App
+var testApp App
 
 func init() {
-	testApp = kii.App{
+	testApp = App{
 		AppID:       "9ab34d8b",
 		AppKey:      "7a950d78956ed39f3b0815f0f001b43b",
 		AppLocation: "JP",
@@ -19,7 +18,7 @@ func init() {
 
 func TestAnonymousLogin(t *testing.T) {
 
-	author, err := kii.AnonymousLogin(testApp)
+	author, err := AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("got error on anonymous login %s", err)
 	}
@@ -29,16 +28,16 @@ func TestAnonymousLogin(t *testing.T) {
 }
 
 func TestGatewayOnboard(t *testing.T) {
-	author, err := kii.AnonymousLogin(testApp)
+	author, err := AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("got error on anonymous login %s", err)
 	}
 
-	requestObj := kii.OnboardGatewayRequest{
+	requestObj := OnboardGatewayRequest{
 		VendorThingID:  "dummyID",
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
-		LayoutPosition: kii.GATEWAY.String(),
+		LayoutPosition: GATEWAY.String(),
 		ThingProperties: map[string]interface{}{
 			"myCustomString": "str",
 			"myNumber":       1,
@@ -80,17 +79,17 @@ func TestGatewayOnboard(t *testing.T) {
 	}
 }
 
-func GatewayOnboard() (gateway *kii.APIAuthor, gatewayID *string, error error) {
+func GatewayOnboard() (gateway *APIAuthor, gatewayID *string, error error) {
 
-	author, err := kii.AnonymousLogin(testApp)
+	author, err := AnonymousLogin(testApp)
 	if err != nil {
 		return nil, nil, err
 	}
-	requestObj := kii.OnboardGatewayRequest{
+	requestObj := OnboardGatewayRequest{
 		VendorThingID:  "dummyEndNodeID",
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
-		LayoutPosition: kii.GATEWAY.String(),
+		LayoutPosition: GATEWAY.String(),
 		ThingProperties: map[string]interface{}{
 			"myCustomString": "str",
 			"myNumber":       1,
@@ -121,7 +120,7 @@ func TestGenerateEndNodeTokenSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error when add end node %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, endNodeID, kii.EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, endNodeID, EndNodeTokenRequest{})
 	if err2 != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err2)
 	}
@@ -134,7 +133,7 @@ func TestGenerateEndNodeTokenFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("got error on onboard gateway %s", err)
 	}
-	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, "th.notexistThing", kii.EndNodeTokenRequest{})
+	responseObj2, err2 := au.GenerateEndNodeToken(*gatewayID, "th.notexistThing", EndNodeTokenRequest{})
 	if err2 == nil {
 		t.Errorf("should fail")
 	}
@@ -145,25 +144,25 @@ func TestGenerateEndNodeTokenFail(t *testing.T) {
 }
 
 func TestRegisterEndNodeSuccess(t *testing.T) {
-	author, err := kii.AnonymousLogin(testApp)
+	author, err := AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("anonymouseLogin fail:%s", err)
 	}
 
 	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
 	type MyRegisterThingRequest struct {
-		kii.RegisterThingRequest
+		RegisterThingRequest
 		MyCustomString string                 `json:"myCustomString"`
 		MyNumber       int                    `json:"myNumber"`
 		MyObject       map[string]interface{} `json:"myObject"`
 	}
 	requestObj := MyRegisterThingRequest{
 
-		RegisterThingRequest: kii.RegisterThingRequest{
+		RegisterThingRequest: RegisterThingRequest{
 			VendorThingID:  VendorThingID,
 			ThingPassword:  "dummyPass",
 			ThingType:      "dummyType",
-			LayoutPosition: kii.ENDNODE.String(),
+			LayoutPosition: ENDNODE.String(),
 		},
 		MyCustomString: "str",
 		MyNumber:       1,
@@ -193,16 +192,16 @@ func TestRegisterEndNodeSuccess(t *testing.T) {
 }
 
 func TestRegisterEndNodeFail(t *testing.T) {
-	author, err := kii.AnonymousLogin(testApp)
+	author, err := AnonymousLogin(testApp)
 	if err != nil {
 		t.Errorf("anonymouseLogin fail:%s", err)
 	}
 
-	requestObj := kii.RegisterThingRequest{
+	requestObj := RegisterThingRequest{
 		VendorThingID:  "",
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
-		LayoutPosition: kii.ENDNODE.String(),
+		LayoutPosition: ENDNODE.String(),
 	}
 	responseObj, err := author.RegisterThing(requestObj)
 	if err == nil {
@@ -213,14 +212,14 @@ func TestRegisterEndNodeFail(t *testing.T) {
 	}
 }
 
-func RegisterAnEndNode(author *kii.APIAuthor) (endNodeID string, error error) {
+func RegisterAnEndNode(author *APIAuthor) (endNodeID string, error error) {
 
 	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
-	requestObj := kii.RegisterThingRequest{
+	requestObj := RegisterThingRequest{
 		VendorThingID:  VendorThingID,
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
-		LayoutPosition: kii.ENDNODE.String(),
+		LayoutPosition: ENDNODE.String(),
 	}
 	responseObj, err := author.RegisterThing(requestObj)
 	if err != nil {
@@ -272,7 +271,7 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		t.Errorf("got error when add end node %s", err)
 	}
 
-	responseObj, err := au.GenerateEndNodeToken(*gatewayID, endNodeID, kii.EndNodeTokenRequest{})
+	responseObj, err := au.GenerateEndNodeToken(*gatewayID, endNodeID, EndNodeTokenRequest{})
 	if err != nil {
 		t.Errorf("got error when GenerateEndNodeToken %s", err)
 	}
@@ -289,7 +288,7 @@ func TestEndNodeStateSuccess(t *testing.T) {
 		Color:      255,
 	}
 
-	endNodeAuthor := kii.APIAuthor{
+	endNodeAuthor := APIAuthor{
 		Token: responseObj.AccessToken,
 		App:   testApp,
 	}
@@ -300,7 +299,7 @@ func TestEndNodeStateSuccess(t *testing.T) {
 }
 
 func TestEndNodeStateFail(t *testing.T) {
-	endNodeAuthor := kii.APIAuthor{
+	endNodeAuthor := APIAuthor{
 		Token: "dummyToken",
 		App:   testApp,
 	}
