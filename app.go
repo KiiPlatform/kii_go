@@ -7,14 +7,14 @@ import (
 
 // App represents Application in Kii Cloud.
 type App struct {
-	AppID       string
-	AppKey      string
-	AppLocation string
+	AppID    string
+	AppKey   string
+	Location string
 }
 
 // HostName returns host name of the Application endpoint.
 func (a *App) HostName() string {
-	lowerLoc := strings.ToLower(a.AppLocation)
+	lowerLoc := strings.ToLower(a.Location)
 	switch lowerLoc {
 	case "jp":
 		return "api-jp.kii.com"

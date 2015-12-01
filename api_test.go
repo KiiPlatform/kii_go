@@ -10,9 +10,9 @@ var testApp App
 
 func init() {
 	testApp = App{
-		AppID:       "9ab34d8b",
-		AppKey:      "7a950d78956ed39f3b0815f0f001b43b",
-		AppLocation: "JP",
+		AppID:    "9ab34d8b",
+		AppKey:   "7a950d78956ed39f3b0815f0f001b43b",
+		Location: "JP",
 	}
 }
 
