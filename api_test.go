@@ -224,9 +224,8 @@ func RegisterAnEndNode(author *APIAuthor) (endNodeID string, error error) {
 	responseObj, err := author.RegisterThing(requestObj)
 	if err != nil {
 		return "", err
-	} else {
-		return responseObj.ThingID, nil
 	}
+	return responseObj.ThingID, nil
 }
 func TestAddEndNodeSuccess(t *testing.T) {
 	author, gatewayID, err := GatewayOnboard()
