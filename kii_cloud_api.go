@@ -1,4 +1,4 @@
-// Provides APIs to access to Kii Cloud and
+// Package kii provides APIs to access to Kii Cloud and
 // Thing Interaction Framework (thing-if).
 package kii
 
@@ -13,14 +13,14 @@ import (
 	"strings"
 )
 
-// Represents Application in Kii Cloud.
+// App represents Application in Kii Cloud.
 type App struct {
 	AppID       string
 	AppKey      string
 	AppLocation string
 }
 
-// Obtain Host name of the Application endpoint.
+// HostName returns host name of the Application endpoint.
 func (ka *App) HostName() string {
 	lowerLoc := strings.ToLower(ka.AppLocation)
 	switch lowerLoc {
@@ -37,17 +37,17 @@ func (ka *App) HostName() string {
 	}
 }
 
-// Obtain thing-if endpoint base url.
+// ThingIFBaseUrl returns thing-if endpoint base url.
 func (ka *App) ThingIFBaseUrl() string {
 	return fmt.Sprintf("https://%s/thing-if/apps/%s", ka.HostName(), ka.AppID)
 }
 
-// Obtain Kii Cloud endpoint base url.
+// KiiCloudBaseUrl returns Kii Cloud endpoint base url.
 func (ka *App) KiiCloudBaseUrl() string {
 	return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
 }
 
-// Layout position of the Thing
+// LayoutPosition represents Layout position of the Thing.
 type LayoutPosition int
 
 const (
