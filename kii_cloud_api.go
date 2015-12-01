@@ -290,14 +290,16 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+au.Token)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+au.Token)
 
-	_, err1 := executeRequest(*req)
-	return err1
+	if _, err := executeRequest(*req); err != nil{
+		return err
+	}
+	return nil
 }
 
 // Register Thing.
