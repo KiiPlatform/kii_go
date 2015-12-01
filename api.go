@@ -152,7 +152,7 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/oauth2/token", app.KiiCloudBaseURL())
+	url := app.CloudURL("/oauth2/token")
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err

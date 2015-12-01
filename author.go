@@ -21,7 +21,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseURL())
+	url := au.App.ThingURL("/onboardings")
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err
@@ -45,7 +45,8 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 // Notes the APIAuthor should be a Gateway.
 // When there's no error, EndNodeTokenResponse is returned.
 func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
+	path := fmt.Sprintf("/things/%s/end-nodes/%s/token", gatewayID, endnodeID)
+	url := au.App.CloudURL(path)
 
 	reqJSON, err := json.Marshal(request)
 	if err != nil {
@@ -70,7 +71,8 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 // Add an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
 func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
+	path := fmt.Sprintf("/things/%s/end-nodes/%s", gatewayID, endnodeID)
+	url := au.App.CloudURL(path)
 
 	req, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
@@ -99,7 +101,7 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseURL())
+	url := au.App.CloudURL("/things")
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err
@@ -129,7 +131,8 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseURL(), thingID)
+	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
+	url := au.App.ThingURL(path)
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return err

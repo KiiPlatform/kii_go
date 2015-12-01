@@ -1,9 +1,6 @@
 package kii
 
-import (
-	"fmt"
-	"strings"
-)
+import "strings"
 
 // App represents Application in Kii Cloud.
 type App struct {
@@ -29,12 +26,17 @@ func (a *App) HostName() string {
 	}
 }
 
-// ThingIFBaseURL returns thing-if endpoint base url.
-func (a *App) ThingIFBaseURL() string {
-	return fmt.Sprintf("https://%s/thing-if/apps/%s", a.HostName(), a.AppID)
+// rootURL returns app's endpoint root URL.
+func (a *App) rootURL() string {
+	return "https://" + a.HostName()
 }
 
-// KiiCloudBaseURL returns Kii Cloud endpoint base url.
-func (a *App) KiiCloudBaseURL() string {
-	return fmt.Sprintf("https://%s/api/apps/%s", a.HostName(), a.AppID)
+// CloudURL returns regular API URL for the app.
+func (a *App) CloudURL(path string) string {
+	return a.rootURL() + "/api/apps/" + a.AppID + path
+}
+
+// ThingURL returns Thing-IF API URL for the app.
+func (a *App) ThingURL(path string) string {
+	return a.rootURL() + "/thing-if/apps/" + a.AppID + path
 }
