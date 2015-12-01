@@ -234,7 +234,6 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 // Let Gateway onboard to the cloud.
 // When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
-	var ret OnboardGatewayResponse
 	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -251,6 +250,7 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	if err != nil {
 		return nil, err
 	}
+	var ret OnboardGatewayResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
@@ -262,7 +262,6 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 // Notes the APIAuthor should be a Gateway.
 // When there's no error, EndNodeTokenResponse is returned.
 func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
-	var ret EndNodeTokenResponse
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
 
 	reqJSON, err := json.Marshal(request)
@@ -277,6 +276,7 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 	if err != nil {
 		return nil, err
 	}
+	var ret EndNodeTokenResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
@@ -311,8 +311,6 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 //  }
 // Where there is no error, RegisterThingResponse is returned
 func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, error) {
-	var ret RegisterThingResponse
-
 	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -331,6 +329,7 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 	if err != nil {
 		return nil, err
 	}
+	var ret RegisterThingResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
