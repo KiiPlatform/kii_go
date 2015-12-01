@@ -51,8 +51,11 @@ func (ka *App) KiiCloudBaseURL() string {
 type LayoutPosition int
 
 const (
+	// ENDNODE represents layout position of endnodes.
 	ENDNODE LayoutPosition = iota
+	// STANDALONE represents layout position of standalone.
 	STANDALONE
+	// GATEWAY represents layout position of gateway.
 	GATEWAY
 )
 
