@@ -202,7 +202,7 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -244,8 +244,8 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
-	req.Header.Set("authorization", "Bearer "+au.Token)
+	req.Header.Set("Content-Type", "application/vnd.kii.onboardingWithVendorThingIDByThing+json")
+	req.Header.Set("Authorization", "Bearer "+au.Token)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -270,8 +270,8 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 		return nil, err
 	}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "Bearer "+au.Token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+au.Token)
 
 	bodyStr, err := executeRequest(*req)
 	if err != nil {
@@ -290,8 +290,8 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "Bearer "+au.Token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+au.Token)
 	if err != nil {
 		return err
 	}
@@ -321,7 +321,7 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/vnd.kii.ThingRegistrationRequest+json")
+	req.Header.Set("Content-Type", "application/vnd.kii.ThingRegistrationRequest+json")
 	req.Header.Set("X-Kii-AppID", au.App.AppID)
 	req.Header.Set("X-Kii-AppKey", au.App.AppKey)
 
@@ -350,8 +350,8 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "Bearer "+au.Token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+au.Token)
 
 	_, err1 := executeRequest(*req)
 	return err1
