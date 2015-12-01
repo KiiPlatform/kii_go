@@ -210,12 +210,14 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// TODO: return as an error.
 	}
 
 	bodyStr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+	// TODO: should be removed after debug.
 	log.Println("body: " + string(bodyStr))
 
 	var respObj AnonymousLoginResponse
@@ -223,11 +225,10 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	if err != nil {
 		return nil, err
 	}
-	au := APIAuthor{
+	return &APIAuthor{
 		Token: respObj.AccessToken,
 		App:   app,
-	}
-	return &au, nil
+	}, nil
 }
 
 // Let Gateway onboard to the cloud.
