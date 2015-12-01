@@ -14,6 +14,8 @@ func init() {
 		AppKey:   "7a950d78956ed39f3b0815f0f001b43b",
 		Location: "JP",
 	}
+	// If you want to make log enabled, uncomment below line.
+	//Logger = log.New(os.Stderr, "", log.LstdFlags)
 }
 
 func TestAnonymousLogin(t *testing.T) {

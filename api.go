@@ -10,6 +10,13 @@ import (
 	"net/http"
 )
 
+// Logger set logger for kii module.  Default is discard logger, no logs are
+// outputed.  Please set a valid logger if you want to make kii module put
+// logs.
+//
+//	kii.Logger = log.New(os.Stderr, "", log.LstdFlags)
+var Logger *log.Logger = log.New(ioutil.Discard, "", 0)
+
 // LayoutPosition represents Layout position of the Thing.
 type LayoutPosition int
 
@@ -49,8 +56,8 @@ func executeRequest(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: should be removed after debug.
-	log.Println("body: " + string(b))
+	// FIXME: should be removed after debug?
+	Logger.Println("body: " + string(b))
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
 		return nil, errors.New(string(b))
@@ -173,8 +180,8 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: should be removed after debug.
-	log.Println("body: " + string(bodyStr))
+	// FIXME: should be removed after debug?
+	Logger.Println("body: " + string(bodyStr))
 
 	var respObj AnonymousLoginResponse
 	err = json.Unmarshal(bodyStr, &respObj)
