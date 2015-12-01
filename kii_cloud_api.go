@@ -37,13 +37,13 @@ func (ka *App) HostName() string {
 	}
 }
 
-// ThingIFBaseUrl returns thing-if endpoint base url.
-func (ka *App) ThingIFBaseUrl() string {
+// ThingIFBaseURL returns thing-if endpoint base url.
+func (ka *App) ThingIFBaseURL() string {
 	return fmt.Sprintf("https://%s/thing-if/apps/%s", ka.HostName(), ka.AppID)
 }
 
-// KiiCloudBaseUrl returns Kii Cloud endpoint base url.
-func (ka *App) KiiCloudBaseUrl() string {
+// KiiCloudBaseURL returns Kii Cloud endpoint base url.
+func (ka *App) KiiCloudBaseURL() string {
 	return fmt.Sprintf("https://%s/api/apps/%s", ka.HostName(), ka.AppID)
 }
 
@@ -191,12 +191,12 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 		ClientSecret: app.AppKey,
 		GrantType:    "client_credentials",
 	}
-	reqJson, err := json.Marshal(reqObj)
+	reqJSON, err := json.Marshal(reqObj)
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/oauth2/token", app.KiiCloudBaseUrl())
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	url := fmt.Sprintf("%s/oauth2/token", app.KiiCloudBaseURL())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err
 	}
@@ -233,12 +233,12 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 // When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	var ret OnboardGatewayResponse
-	reqJson, err := json.Marshal(request)
+	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
-	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseUrl())
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	url := fmt.Sprintf("%s/onboardings", au.App.ThingIFBaseURL())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err
 	}
@@ -262,13 +262,13 @@ func (au *APIAuthor) OnboardGateway(request OnboardGatewayRequest) (*OnboardGate
 // When there's no error, EndNodeTokenResponse is returned.
 func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, request EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
 	var ret EndNodeTokenResponse
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseUrl(), gatewayID, endnodeID)
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s/token", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
 
-	reqJson, err := json.Marshal(request)
+	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", "Bearer "+au.Token)
 
@@ -287,7 +287,7 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, req
 // Add an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
 func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
-	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseUrl(), gatewayID, endnodeID)
+	url := fmt.Sprintf("%s/things/%s/end-nodes/%s", au.App.KiiCloudBaseURL(), gatewayID, endnodeID)
 
 	req, err := http.NewRequest("PUT", url, nil)
 	req.Header.Set("content-type", "application/json")
@@ -311,13 +311,13 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, error) {
 	var ret RegisterThingResponse
 
-	reqJson, err := json.Marshal(request)
+	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseUrl())
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJson))
+	url := fmt.Sprintf("%s/things", au.App.KiiCloudBaseURL())
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return nil, err
 	}
@@ -341,13 +341,13 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 // Notes that the APIAuthor should be already initialized as a Gateway or EndNode
 func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 
-	reqJson, err := json.Marshal(request)
+	reqJSON, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseUrl(), thingID)
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJson))
+	url := fmt.Sprintf("%s/targets/thing:%s/states", au.App.ThingIFBaseURL(), thingID)
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJSON))
 	if err != nil {
 		return err
 	}
