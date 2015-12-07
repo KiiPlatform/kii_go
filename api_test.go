@@ -18,6 +18,78 @@ func init() {
 	//Logger = log.New(os.Stderr, "", log.LstdFlags)
 }
 
+func GatewayOnboard() (gateway *APIAuthor, gatewayID *string, error error) {
+
+	author, err := AnonymousLogin(testApp)
+	if err != nil {
+		return nil, nil, err
+	}
+	requestObj := OnboardGatewayRequest{
+		VendorThingID:  "dummyEndNodeID",
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: GATEWAY.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	respObj, err := author.OnboardGateway(&requestObj)
+	if err != nil {
+		return nil, nil, err
+	}
+	author.Token = respObj.AccessToken
+	return author, &respObj.ThingID, nil
+}
+
+func RegisterAnEndNode(author *APIAuthor) (endNodeID string, error error) {
+
+	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
+	requestObj := RegisterThingRequest{
+		VendorThingID:  VendorThingID,
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: ENDNODE.String(),
+	}
+	responseObj, err := author.RegisterThing(requestObj)
+	if err != nil {
+		return "", err
+	} else {
+		return responseObj.ThingID, nil
+	}
+}
+
+func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
+	author := APIAuthor{
+		Token: "",
+		App:   testApp,
+	}
+
+	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
+	requestObj := UserRegisterRequest{
+		LoginName: userName,
+		Password:  "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err != nil {
+		return nil, "", err
+	}
+
+	loginReqObj := UserLoginRequest{
+		UserName: resp.LoginName,
+		Password: "dummyPassword",
+	}
+	respObj, err := author.LoginAsKiiUser(loginReqObj)
+	if err != nil {
+		return nil, "", err
+	}
+	author.Token = respObj.AccessToken
+	return &author, respObj.ID, nil
+}
+
 func TestAnonymousLogin(t *testing.T) {
 
 	author, err := AnonymousLogin(testApp)
@@ -79,33 +151,6 @@ func TestGatewayOnboard(t *testing.T) {
 	if responseObj.MqttEndpoint.PortTCP < 1 {
 		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
 	}
-}
-
-func GatewayOnboard() (gateway *APIAuthor, gatewayID *string, error error) {
-
-	author, err := AnonymousLogin(testApp)
-	if err != nil {
-		return nil, nil, err
-	}
-	requestObj := OnboardGatewayRequest{
-		VendorThingID:  "dummyEndNodeID",
-		ThingPassword:  "dummyPass",
-		ThingType:      "dummyType",
-		LayoutPosition: GATEWAY.String(),
-		ThingProperties: map[string]interface{}{
-			"myCustomString": "str",
-			"myNumber":       1,
-			"myObject": map[string]interface{}{
-				"a": "b",
-			},
-		},
-	}
-	respObj, err := author.OnboardGateway(&requestObj)
-	if err != nil {
-		return nil, nil, err
-	}
-	author.Token = respObj.AccessToken
-	return author, &respObj.ThingID, nil
 }
 
 func TestGenerateEndNodeTokenSuccess(t *testing.T) {
@@ -214,21 +259,6 @@ func TestRegisterEndNodeFail(t *testing.T) {
 	}
 }
 
-func RegisterAnEndNode(author *APIAuthor) (endNodeID string, error error) {
-
-	VendorThingID := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
-	requestObj := RegisterThingRequest{
-		VendorThingID:  VendorThingID,
-		ThingPassword:  "dummyPass",
-		ThingType:      "dummyType",
-		LayoutPosition: ENDNODE.String(),
-	}
-	responseObj, err := author.RegisterThing(requestObj)
-	if err != nil {
-		return "", err
-	}
-	return responseObj.ThingID, nil
-}
 func TestAddEndNodeSuccess(t *testing.T) {
 	author, gatewayID, err := GatewayOnboard()
 	if err != nil {
@@ -319,5 +349,299 @@ func TestEndNodeStateFail(t *testing.T) {
 	err := endNodeAuthor.UpdateState("dummyID", request)
 	if err == nil {
 		t.Errorf("should fail.")
+	}
+}
+
+func TestRegisterAndLoginKiiUserSuccess(t *testing.T) {
+	author := APIAuthor{
+		Token: "",
+		App:   testApp,
+	}
+
+	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
+	requestObj := UserRegisterRequest{
+		LoginName: userName,
+		Password:  "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err != nil {
+		t.Errorf("register kiiuser failed. %s", err)
+	}
+
+	loginReqObj := UserLoginRequest{
+		UserName: resp.LoginName,
+		Password: "dummyPassword",
+	}
+	loginResp, err := author.LoginAsKiiUser(loginReqObj)
+	if err != nil {
+		t.Errorf("login as kiiuser failed. %s", err)
+	}
+	if len(loginResp.ID) < 1 {
+		t.Errorf("got invalid response object %+v", loginResp)
+	}
+
+}
+
+func TestRegisterKiiUserFail(t *testing.T) {
+	author := APIAuthor{
+		Token: "",
+		App:   testApp,
+	}
+
+	requestObj := UserRegisterRequest{
+		Password: "dummyPassword",
+	}
+	resp, err := author.RegisterKiiUser(requestObj)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if resp != nil {
+		t.Errorf("should be nil")
+	}
+}
+
+func TestLoginAsKiiUserFail(t *testing.T) {
+	author := APIAuthor{
+		Token: "",
+		App:   testApp,
+	}
+
+	loginReqObj := UserLoginRequest{
+		UserName: "dummyUser",
+		Password: "dummyPassword",
+	}
+	loginResp, err := author.LoginAsKiiUser(loginReqObj)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if loginResp != nil {
+		t.Errorf("should be nil")
+	}
+	if author.Token != "" {
+		t.Errorf("access token should not be updated")
+	}
+}
+
+func TestPostCommandSuccess(t *testing.T) {
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	endnodeID, err := RegisterAnEndNode(author)
+
+	onboardRequest := OnboardByOwnerRequest{
+		ThingID:       endnodeID,
+		Owner:         "user:" + userID,
+		ThingPassword: "dummyPass",
+	}
+	_, err = author.OnboardThingByOwner(onboardRequest)
+
+	actions := []map[string]interface{}{
+		map[string]interface{}{
+			"turnPower": map[string]interface{}{
+				"power": true,
+			},
+		},
+	}
+	request := PostCommandRequest{
+		Issuer:        "user:" + userID,
+		Actions:       actions,
+		Schema:        "LED-schema",
+		SchemaVersion: 1,
+	}
+	postResp, err := author.PostCommand(endnodeID, request)
+	if err != nil {
+		t.Errorf("fail to post command: %s", err)
+	}
+	if len(postResp.CommandID) < 1 {
+		t.Errorf("got invalid response object %+v", postResp)
+	}
+}
+
+func TestPostCommandFail(t *testing.T) {
+	author := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	actions := []map[string]interface{}{
+		map[string]interface{}{
+			"turnPower": map[string]interface{}{
+				"power": true,
+			},
+		},
+	}
+	request := PostCommandRequest{
+		Issuer:        "user:dummyID",
+		Actions:       actions,
+		Schema:        "LED-schema",
+		SchemaVersion: 1,
+	}
+	postResp, err := author.PostCommand("dummyThing", request)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if postResp != nil {
+		t.Errorf("should fail")
+	}
+
+}
+
+func TestUpdateCommandResultsSuccess(t *testing.T) {
+
+	// Post command by endnode owner
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+	endnodeID, err := RegisterAnEndNode(author)
+
+	onboardRequest := OnboardByOwnerRequest{
+		ThingID:       endnodeID,
+		Owner:         "user:" + userID,
+		ThingPassword: "dummyPass",
+	}
+	_, err = author.OnboardThingByOwner(onboardRequest)
+
+	if err != nil {
+		t.Errorf("onboard faild:%s", err)
+	}
+
+	actions := []map[string]interface{}{
+		map[string]interface{}{
+			"turnPower": map[string]interface{}{
+				"power": true,
+			},
+		},
+	}
+	request := PostCommandRequest{
+		Issuer:        "user:" + userID,
+		Actions:       actions,
+		Schema:        "LED-schema",
+		SchemaVersion: 1,
+	}
+	postResp, err := author.PostCommand(endnodeID, request)
+	if err != nil {
+		t.Errorf("fail to post command: %s", err)
+	}
+	commandID := postResp.CommandID
+
+	// Get endnode token and update command results
+	gateway, gatewayID, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("onboard gateway fail:%s", err)
+	}
+	err = gateway.AddEndNode(*gatewayID, endnodeID)
+	if err != nil {
+		t.Errorf("gateway add endnode fail: %s", err)
+	}
+	endNodeTokenResp, err := gateway.GenerateEndNodeToken(*gatewayID, endnodeID, &EndNodeTokenRequest{})
+	endNodeToken := endNodeTokenResp.AccessToken
+
+	// endnode update Command results
+	endnodeAuthor := APIAuthor{
+		Token: endNodeToken,
+		App:   testApp,
+	}
+	actionResults := []map[string]interface{}{
+		map[string]interface{}{
+			"turnPower": map[string]interface{}{
+				"result": false,
+			},
+		},
+	}
+	updateActionResultsRequest := UpdateCommandResultsRequest{
+		ActionResults: actionResults,
+	}
+	err = endnodeAuthor.UpdateCommandResults(endnodeID, commandID, updateActionResultsRequest)
+	if err != nil {
+		t.Errorf("update command results faild: %s", err)
+	}
+}
+
+func TestUpdateCommandResultsFail(t *testing.T) {
+	// endnode update Command results
+	endnodeAuthor := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	actionResults := []map[string]interface{}{
+		map[string]interface{}{
+			"turnPower": map[string]interface{}{
+				"result": false,
+			},
+		},
+	}
+	updateActionResultsRequest := UpdateCommandResultsRequest{
+		ActionResults: actionResults,
+	}
+	err := endnodeAuthor.UpdateCommandResults("dummyThingID", "dummyCommandID", updateActionResultsRequest)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+}
+
+func TestOnboardThingByOwnerSuccess(t *testing.T) {
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	endnodeID, err := RegisterAnEndNode(author)
+
+	onboardRequest := OnboardByOwnerRequest{
+		ThingID:       endnodeID,
+		Owner:         "user:" + userID,
+		ThingPassword: "dummyPass",
+	}
+	responseObj, err := author.OnboardThingByOwner(onboardRequest)
+	if err != nil {
+		t.Errorf("onboard by owner fail:%s", err)
+	}
+	if len(responseObj.ThingID) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+	if len(responseObj.AccessToken) < 1 {
+		t.Errorf("got invalid response object %+v", responseObj)
+	}
+	if len(responseObj.MqttEndpoint.InstallationID) < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if len(responseObj.MqttEndpoint.Host) < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if len(responseObj.MqttEndpoint.MqttTopic) < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if len(responseObj.MqttEndpoint.Username) < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if len(responseObj.MqttEndpoint.Password) < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if responseObj.MqttEndpoint.PortSSL < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if responseObj.MqttEndpoint.PortTCP < 1 {
+		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+}
+func TestOnboardThingByOwnerFail(t *testing.T) {
+	author := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	onboardRequest := OnboardByOwnerRequest{
+		ThingID:       "dummyID",
+		Owner:         "user:dummyUser",
+		ThingPassword: "dummyPass",
+	}
+	responseObj, err := author.OnboardThingByOwner(onboardRequest)
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if responseObj != nil {
+		t.Errorf("should fail")
 	}
 }

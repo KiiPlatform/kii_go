@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Struct represents API author.
+// APIAuthor represents API author.
 // Can be Gateway, EndNode or KiiUser, depending on the token.
 type APIAuthor struct {
 	Token string
@@ -22,10 +22,10 @@ func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Requ
 	return req, nil
 }
 
-// Let Gateway onboard to the cloud.
-// When there's no error, OnboardGatewayResponse is returned.
-func (au *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
-	req, err := au.newRequest("POST", au.App.ThingIFURL("/onboardings"), r)
+// OnboardGateway lets Gateway onboard to the cloud.
+// When there's no error, OnboardResponse is returned.
+func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, error) {
+	req, err := a.newRequest("POST", a.App.ThingIFURL("/onboardings"), r)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (au *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayRe
 	if err != nil {
 		return nil, err
 	}
-	var ret OnboardGatewayResponse
+	var ret OnboardResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
@@ -42,14 +42,14 @@ func (au *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayRe
 	return &ret, nil
 }
 
-// Request access token of end node of gateway.
+// GenerateEndNodeToken Requests access token of end node of gateway.
 // Notes the APIAuthor should be a Gateway.
 // When there's no error, EndNodeTokenResponse is returned.
-func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, r *EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
+func (a APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, r *EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
 	path := fmt.Sprintf("/things/%s/end-nodes/%s/token", gatewayID, endnodeID)
-	url := au.App.CloudURL(path)
+	url := a.App.CloudURL(path)
 
-	req, err := au.newRequest("POST", url, r)
+	req, err := a.newRequest("POST", url, r)
 	if err != nil {
 		return nil, err
 	}
@@ -66,17 +66,17 @@ func (au APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, r *
 	return &ret, nil
 }
 
-// Add an end node thing to gateway
+// AddEndNode adds an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
-func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
+func (a APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	path := fmt.Sprintf("/things/%s/end-nodes/%s", gatewayID, endnodeID)
-	url := au.App.CloudURL(path)
+	url := a.App.CloudURL(path)
 
-	req, err := au.newRequest("PUT", url, nil)
+	req, err := a.newRequest("PUT", url, nil)
 	if err != nil {
 		return err
 	}
-	// au.newRequest() don't set Content-Type for nil body. So we must set it
+	// a.newRequest() don't set Content-Type for nil body. So we must set it
 	// explicitly.
 	req.Header.Set("Content-Type", "application/json")
 
@@ -86,7 +86,7 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	return nil
 }
 
-// Register Thing.
+// RegisterThing registers a Thing on Kii Cloud.
 // The request must consist of the predefined fields(see RegisterThingRequest).
 // If you want to add the custom fileds, you can simply make RegisterThingRequest as anonymous field of your defined request struct, like:
 //  type MyRegisterThingRequest struct {
@@ -94,11 +94,11 @@ func (au APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 //    MyField1             string
 //  }
 // Where there is no error, RegisterThingResponse is returned
-func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, error) {
+func (a APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, error) {
 	// TODO: should be checked that request contains RegisterThingResponse.
 
-	url := au.App.CloudURL("/things")
-	req, err := au.App.newRequest("POST", url, request)
+	url := a.App.CloudURL("/things")
+	req, err := a.App.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
@@ -117,13 +117,13 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 	return &ret, nil
 }
 
-// Update Thing state.
+// UpdateState updates Thing state.
 // Notes that the APIAuthor should be already initialized as a Gateway or EndNode
-func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
+func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
-	url := au.App.ThingIFURL(path)
+	url := a.App.ThingIFURL(path)
 
-	req, err := au.newRequest("PUT", url, request)
+	req, err := a.newRequest("PUT", url, request)
 	if err != nil {
 		return err
 	}
@@ -132,4 +132,107 @@ func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// LoginAsKiiUser logins as a KiiUser.
+// If there is no error, UserLoginResponse is returned.
+// Notes that after login successfully, api doesn't update token of APIAuthor,
+// you should update by yourself with the token in response.
+func (a *APIAuthor) LoginAsKiiUser(request UserLoginRequest) (*UserLoginResponse, error) {
+	url := fmt.Sprintf("https://%s/api/oauth2/token", a.App.HostName())
+	req, err := a.App.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret UserLoginResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// RegisterKiiUser registers a KiiUser.
+// If there is no error, UserRegisterResponse is returned.
+func (a *APIAuthor) RegisterKiiUser(request UserRegisterRequest) (*UserRegisterResponse, error) {
+	url := a.App.CloudURL("/users")
+	req, err := a.App.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret UserRegisterResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// PostCommand posts command to Thing.
+// Notes that it requires Thing already onboard.
+// If there is no error, PostCommandRequest is returned.
+func (a APIAuthor) PostCommand(thingID string, request PostCommandRequest) (*PostCommandResponse, error) {
+	path := fmt.Sprintf("/targets/THING:%s/commands", thingID)
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret PostCommandResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// UpdateCommandResults updates command results.
+func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, request UpdateCommandResultsRequest) error {
+
+	path := fmt.Sprintf("/targets/thing:%s/commands/%s/action-results", thingID, commandID)
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("PUT", url, request)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	return err
+}
+
+// OnboardThingByOwner onboards a thing by its owner.
+func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardResponse, error) {
+	url := a.App.ThingIFURL("/onboardings")
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.OnboardingWithThingIDByOwner+json")
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret OnboardResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
 }
