@@ -1,7 +1,6 @@
 package kii
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -140,81 +139,61 @@ func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 // Notes that after login successfully, api doesn't update token of APIAuthor,
 // you should update by yourself with the token in response.
 func (a *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginResponse, error) {
-	var ret KiiUserLoginResponse
-	reqJSON, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
 	url := fmt.Sprintf("https://%s/api/oauth2/token", a.App.HostName())
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
+	req, err := a.App.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("X-Kii-AppID", a.App.AppID)
-	req.Header.Set("X-Kii-AppKey", a.App.AppKey)
+
 	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
+	var ret KiiUserLoginResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
 	return &ret, nil
-
 }
 
 // RegisterKiiUser registers a KiiUser.
 // If there is no error, KiiUserRegisterResponse is returned.
 func (a *APIAuthor) RegisterKiiUser(request KiiUserRegisterRequest) (*KiiUserRegisterResponse, error) {
-	var ret KiiUserRegisterResponse
-	reqJSON, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
 	url := a.App.CloudURL("/users")
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
+	req, err := a.App.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("X-Kii-AppID", a.App.AppID)
-	req.Header.Set("X-Kii-AppKey", a.App.AppKey)
+
 	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
+	var ret KiiUserRegisterResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
 	return &ret, nil
-
 }
 
 // PostCommand posts command to Thing.
 // Notes that it requires Thing already onboard.
 // If there is no error, PostCommandRequest is returned.
 func (a APIAuthor) PostCommand(thingID string, request PostCommandRequest) (*PostCommandResponse, error) {
-	var ret PostCommandResponse
-	reqJSON, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
 	path := fmt.Sprintf("/targets/THING:%s/commands", thingID)
 	url := a.App.ThingIFURL(path)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
+	req, err := a.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "Bearer "+a.Token)
 	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
+	var ret PostCommandResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
@@ -224,18 +203,13 @@ func (a APIAuthor) PostCommand(thingID string, request PostCommandRequest) (*Pos
 
 // UpdateCommandResults updates command results.
 func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, request UpdateCommandResultsRequest) error {
-	reqJSON, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
+
 	path := fmt.Sprintf("/targets/thing:%s/commands/%s/action-results", thingID, commandID)
 	url := a.App.ThingIFURL(path)
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(reqJSON))
+	req, err := a.newRequest("PUT", url, request)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("authorization", "Bearer "+a.Token)
 
 	_, err = executeRequest(req)
 	return err
@@ -243,24 +217,19 @@ func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, reques
 
 // OnboardThingByOwner onboards a thing by its owner.
 func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardResponse, error) {
-	var ret OnboardResponse
-	reqJSON, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
 	url := a.App.ThingIFURL("/onboardings")
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqJSON))
+	req, err := a.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("content-type", "application/vnd.kii.OnboardingWithThingIDByOwner+json")
-	req.Header.Set("authorization", "Bearer "+a.Token)
+	req.Header.Set("Content-Type", "application/vnd.kii.OnboardingWithThingIDByOwner+json")
 
 	bodyStr, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
+	var ret OnboardResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
