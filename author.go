@@ -22,7 +22,7 @@ func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Requ
 	return req, nil
 }
 
-// OnboardGateway let Gateway onboard to the cloud.
+// OnboardGateway lets Gateway onboard to the cloud.
 // When there's no error, OnboardResponse is returned.
 func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, error) {
 	req, err := a.newRequest("POST", a.App.ThingIFURL("/onboardings"), r)
@@ -42,7 +42,7 @@ func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, 
 	return &ret, nil
 }
 
-// GenerateEndNodeToken Request access token of end node of gateway.
+// GenerateEndNodeToken Requests access token of end node of gateway.
 // Notes the APIAuthor should be a Gateway.
 // When there's no error, EndNodeTokenResponse is returned.
 func (a APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, r *EndNodeTokenRequest) (*EndNodeTokenResponse, error) {
@@ -66,7 +66,7 @@ func (a APIAuthor) GenerateEndNodeToken(gatewayID string, endnodeID string, r *E
 	return &ret, nil
 }
 
-// AddEndNode add an end node thing to gateway
+// AddEndNode adds an end node thing to gateway
 // Notes that the APIAuthor should be a Gateway
 func (a APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	path := fmt.Sprintf("/things/%s/end-nodes/%s", gatewayID, endnodeID)
@@ -86,7 +86,7 @@ func (a APIAuthor) AddEndNode(gatewayID string, endnodeID string) error {
 	return nil
 }
 
-// RegisterThing register a Thing on Kii Cloud.
+// RegisterThing registers a Thing on Kii Cloud.
 // The request must consist of the predefined fields(see RegisterThingRequest).
 // If you want to add the custom fileds, you can simply make RegisterThingRequest as anonymous field of your defined request struct, like:
 //  type MyRegisterThingRequest struct {
@@ -134,7 +134,7 @@ func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 	return nil
 }
 
-// LoginAsKiiUser login as a KiiUser.
+// LoginAsKiiUser logins as a KiiUser.
 // If there is no error, KiiUserLoginResponse is returned.
 // Notes that after login successfully, api doesn't update token of APIAuthor,
 // you should update by yourself with the token in response.
