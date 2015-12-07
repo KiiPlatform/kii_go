@@ -13,7 +13,7 @@ import (
 // logs.
 //
 //	kii.Logger = log.New(os.Stderr, "", log.LstdFlags)
-var Logger *log.Logger = log.New(ioutil.Discard, "", 0)
+var Logger = log.New(ioutil.Discard, "", 0)
 
 // LayoutPosition represents Layout position of the Thing.
 type LayoutPosition int
