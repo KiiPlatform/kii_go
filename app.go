@@ -39,8 +39,8 @@ func (a *App) CloudURL(path string) string {
 	return a.rootURL() + "/api/apps/" + a.AppID + path
 }
 
-// ThingURL returns Thing-IF API URL for the app.
-func (a *App) ThingURL(path string) string {
+// ThingIFURL returns Thing-IF API URL for the app.
+func (a *App) ThingIFURL(path string) string {
 	return a.rootURL() + "/thing-if/apps/" + a.AppID + path
 }
 

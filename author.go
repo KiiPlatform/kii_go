@@ -25,7 +25,7 @@ func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Requ
 // Let Gateway onboard to the cloud.
 // When there's no error, OnboardGatewayResponse is returned.
 func (au *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
-	req, err := au.newRequest("POST", au.App.ThingURL("/onboardings"), r)
+	req, err := au.newRequest("POST", au.App.ThingIFURL("/onboardings"), r)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (au APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, 
 // Notes that the APIAuthor should be already initialized as a Gateway or EndNode
 func (au APIAuthor) UpdateState(thingID string, request interface{}) error {
 	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
-	url := au.App.ThingURL(path)
+	url := au.App.ThingIFURL(path)
 
 	req, err := au.newRequest("PUT", url, request)
 	if err != nil {
