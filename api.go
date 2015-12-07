@@ -41,7 +41,7 @@ func (lp LayoutPosition) String() string {
 	}
 }
 
-// Struct for requesting Gateway Onboard.
+// OnboardGatewayRequest for requesting Gateway Onboard.
 type OnboardGatewayRequest struct {
 	VendorThingID   string                 `json:"vendorThingID"`
 	ThingPassword   string                 `json:"thingPassword"`
@@ -56,14 +56,14 @@ func (r *OnboardGatewayRequest) contentType() string {
 	return "application/vnd.kii.onboardingWithVendorThingIDByThing+json"
 }
 
-// Struct for receiving response of Gateway Onboard.
+// OnboardResponse for receiving response of Gateway Onboard.
 type OnboardResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
 	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
 }
 
-// Struct represents MQTT endpoint.
+// MqttEndpoint represents MQTT endpoint.
 type MqttEndpoint struct {
 	InstallationID string `json:"installationID"`
 	Host           string `json:"host"`
@@ -74,12 +74,12 @@ type MqttEndpoint struct {
 	PortTCP        int    `json:"portTCP"`
 }
 
-// Struct for requesting end node token
+// EndNodeTokenRequest for requesting end node token
 type EndNodeTokenRequest struct {
 	ExpiresIn string `json:"expires_in,omitempty"`
 }
 
-// Struct for receiving response of end node token
+// EndNodeTokenResponse for receiving response of end node token
 type EndNodeTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int    `json:"expires_in"`
@@ -87,7 +87,7 @@ type EndNodeTokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// Struct of predefined fileds for requesting Thing Registration.
+// RegisterThingRequest reresents predefined fileds for requesting Thing Registration.
 type RegisterThingRequest struct {
 	VendorThingID   string `json:"_vendorThingID"`
 	ThingPassword   string `json:"_password"`
@@ -108,7 +108,7 @@ type RegisterThingRequest struct {
 	NumberField5    int64  `json:"_numberField5,omitempty"`
 }
 
-// Struct for receiving response of end node token
+// RegisterThingResponse for receiving response of end node token
 type RegisterThingResponse struct {
 	ThingID        string `json:"_thingID"`
 	VendorThingID  string `json:"_vendorThingID"`
@@ -118,9 +118,9 @@ type RegisterThingResponse struct {
 	Disabled       bool   `json:"_disabled"`
 }
 
-// Struct for request registration of KiiUser.
+// UserRegisterRequest for request registration of KiiUser.
 // At least one of LoginName, EmailAddress or PhoneNumber must be provided.
-type KiiUserRegisterRequest struct {
+type UserRegisterRequest struct {
 	LoginName           string `json:"loginName,omitempty"`
 	DisplayName         string `json:"displayName,omitempty"`
 	Country             string `json:"country,omitempty"`
@@ -131,8 +131,8 @@ type KiiUserRegisterRequest struct {
 	Password            string `json:"password"`
 }
 
-// Struct for receiving registration of KiiUser.
-type KiiUserRegisterResponse struct {
+// UserRegisterResponse for receiving registration of KiiUser.
+type UserRegisterResponse struct {
 	UserID              string `json:"userID"`
 	LoginName           string `json:"loginName"`
 	DisplayName         string `json:"displayName"`
@@ -144,8 +144,8 @@ type KiiUserRegisterResponse struct {
 	HasPassword         bool   `json:"_hasPassword"`
 }
 
-// Struct for requesting login of KiiUser
-type KiiUserLoginRequest struct {
+// UserLoginRequest for requesting login of KiiUser
+type UserLoginRequest struct {
 	UserName     string `json:"username"`
 	Password     string `json:"password"`
 	ExpiresAt    string `json:"expiresAt,omitempty"`
@@ -153,8 +153,8 @@ type KiiUserLoginRequest struct {
 	GrantType    string `json:"grant_type,omitempty"`
 }
 
-// Struct for receiving response of login
-type KiiUserLoginResponse struct {
+// UserLoginResponse for receiving response of login
+type UserLoginResponse struct {
 	ID           string `json:"id"`
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int    `json:"expires_in"`
@@ -162,7 +162,7 @@ type KiiUserLoginResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// Struct for posting command
+// PostCommandRequest for posting command
 // Issuer can be group or user.
 // If user, must be "user:<user-id>".
 type PostCommandRequest struct {
@@ -176,12 +176,12 @@ type PostCommandRequest struct {
 	Metadata         map[string]interface{}   `json:"metadata,omitempty"`
 }
 
-// Struct for receiving response of posting command
+// PostCommandResponse for receiving response of posting command
 type PostCommandResponse struct {
 	CommandID string `json:"commandID"`
 }
 
-// Struct for requesting Onboard by Thing Owner.
+// OnboardByOwnerRequest for requesting Onboard by Thing Owner.
 type OnboardByOwnerRequest struct {
 	ThingID        string `json:"thingID"`
 	ThingPassword  string `json:"thingPassword"`
@@ -189,12 +189,12 @@ type OnboardByOwnerRequest struct {
 	LayoutPosition string `json:"layoutPosition,omitempty"` // pattern: GATEWAY|STANDALONE|ENDNODE, STANDALONE by default
 }
 
-// Struct for updating command results
+// UpdateCommandResultsRequest for updating command results
 type UpdateCommandResultsRequest struct {
 	ActionResults []map[string]interface{} `json:"actionResults"`
 }
 
-// Login as Anonymous user.
+// AnonymousLogin logins as Anonymous user.
 // When there's no error, APIAuthor is returned.
 func AnonymousLogin(app App) (*APIAuthor, error) {
 	type AnonymousLoginRequest struct {

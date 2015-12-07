@@ -135,10 +135,10 @@ func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 }
 
 // LoginAsKiiUser logins as a KiiUser.
-// If there is no error, KiiUserLoginResponse is returned.
+// If there is no error, UserLoginResponse is returned.
 // Notes that after login successfully, api doesn't update token of APIAuthor,
 // you should update by yourself with the token in response.
-func (a *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginResponse, error) {
+func (a *APIAuthor) LoginAsKiiUser(request UserLoginRequest) (*UserLoginResponse, error) {
 	url := fmt.Sprintf("https://%s/api/oauth2/token", a.App.HostName())
 	req, err := a.App.newRequest("POST", url, request)
 	if err != nil {
@@ -150,7 +150,7 @@ func (a *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginRe
 		return nil, err
 	}
 
-	var ret KiiUserLoginResponse
+	var ret UserLoginResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
@@ -158,8 +158,8 @@ func (a *APIAuthor) LoginAsKiiUser(request KiiUserLoginRequest) (*KiiUserLoginRe
 }
 
 // RegisterKiiUser registers a KiiUser.
-// If there is no error, KiiUserRegisterResponse is returned.
-func (a *APIAuthor) RegisterKiiUser(request KiiUserRegisterRequest) (*KiiUserRegisterResponse, error) {
+// If there is no error, UserRegisterResponse is returned.
+func (a *APIAuthor) RegisterKiiUser(request UserRegisterRequest) (*UserRegisterResponse, error) {
 	url := a.App.CloudURL("/users")
 	req, err := a.App.newRequest("POST", url, request)
 	if err != nil {
@@ -171,7 +171,7 @@ func (a *APIAuthor) RegisterKiiUser(request KiiUserRegisterRequest) (*KiiUserReg
 		return nil, err
 	}
 
-	var ret KiiUserRegisterResponse
+	var ret UserRegisterResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}

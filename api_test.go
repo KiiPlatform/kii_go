@@ -69,7 +69,7 @@ func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
 	}
 
 	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
-	requestObj := KiiUserRegisterRequest{
+	requestObj := UserRegisterRequest{
 		LoginName: userName,
 		Password:  "dummyPassword",
 	}
@@ -78,7 +78,7 @@ func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
 		return nil, "", err
 	}
 
-	loginReqObj := KiiUserLoginRequest{
+	loginReqObj := UserLoginRequest{
 		UserName: resp.LoginName,
 		Password: "dummyPassword",
 	}
@@ -359,7 +359,7 @@ func TestRegisterAndLoginKiiUserSuccess(t *testing.T) {
 	}
 
 	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
-	requestObj := KiiUserRegisterRequest{
+	requestObj := UserRegisterRequest{
 		LoginName: userName,
 		Password:  "dummyPassword",
 	}
@@ -368,7 +368,7 @@ func TestRegisterAndLoginKiiUserSuccess(t *testing.T) {
 		t.Errorf("register kiiuser failed. %s", err)
 	}
 
-	loginReqObj := KiiUserLoginRequest{
+	loginReqObj := UserLoginRequest{
 		UserName: resp.LoginName,
 		Password: "dummyPassword",
 	}
@@ -388,7 +388,7 @@ func TestRegisterKiiUserFail(t *testing.T) {
 		App:   testApp,
 	}
 
-	requestObj := KiiUserRegisterRequest{
+	requestObj := UserRegisterRequest{
 		Password: "dummyPassword",
 	}
 	resp, err := author.RegisterKiiUser(requestObj)
@@ -406,7 +406,7 @@ func TestLoginAsKiiUserFail(t *testing.T) {
 		App:   testApp,
 	}
 
-	loginReqObj := KiiUserLoginRequest{
+	loginReqObj := UserLoginRequest{
 		UserName: "dummyUser",
 		Password: "dummyPassword",
 	}
