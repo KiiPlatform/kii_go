@@ -645,3 +645,69 @@ func TestOnboardThingByOwnerFail(t *testing.T) {
 		t.Errorf("should fail")
 	}
 }
+
+func TestOnboardEndNodeWithGatewaySuccess(t *testing.T) {
+	// get a login user
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	// onboard gateway with login user for ownership
+	_, gwid, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("fail to onboard gateway:%s", err)
+	}
+	oboreq := OnboardByOwnerRequest{
+		ThingID:       *gwid,
+		Owner:         "user:" + userID,
+		ThingPassword: "dummyPass",
+	}
+	_, err = author.OnboardThingByOwner(oboreq)
+	if err != nil {
+		t.Errorf("fail to onboard gateway by login user:%s", err)
+	}
+
+	// create an endnode
+	endnodeID, err := RegisterAnEndNode(author)
+	owgreq := OnboardEndnodeWithGatewayRequest{
+		EndNodeVendorThingID: endnodeID,
+		GatewayThingID:       *gwid,
+		EndNodePassword:      "dummyPass",
+		Owner:                "user:" + userID,
+	}
+	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
+	if err != nil {
+		t.Errorf("onboard endnode with gateway id fail: %s ", err)
+	}
+	if owgres.AccessToken == "" {
+		t.Errorf("should have accessToken")
+	}
+	if owgres.EndNodeThingID == "" {
+		t.Errorf("should have endnodeThingID")
+	}
+}
+
+func TestOnboardEndNodeWithGatewayFail(t *testing.T) {
+	// get a login user
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	// create an endnode
+	owgreq := OnboardEndnodeWithGatewayRequest{
+		EndNodeVendorThingID: "dummyEndnodeID",
+		GatewayThingID:       "dummyGatewayID",
+		EndNodePassword:      "dummyPass",
+		Owner:                "user:" + userID,
+	}
+	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
+	if err == nil {
+		t.Errorf("onboard endnode with gateway id should fail ")
+	}
+	if owgres != nil {
+		t.Errorf("should be nil ")
+	}
+
+}
