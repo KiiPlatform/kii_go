@@ -56,8 +56,8 @@ func (r *OnboardGatewayRequest) contentType() string {
 	return "application/vnd.kii.onboardingWithVendorThingIDByThing+json"
 }
 
-// OnboardResponse for receiving response of Gateway Onboard.
-type OnboardResponse struct {
+// OnboardGatewayResponse for receiving response of Gateway Onboard.
+type OnboardGatewayResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
 	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
@@ -187,6 +187,22 @@ type OnboardByOwnerRequest struct {
 	ThingPassword  string `json:"thingPassword"`
 	Owner          string `json:"owner"`
 	LayoutPosition string `json:"layoutPosition,omitempty"` // pattern: GATEWAY|STANDALONE|ENDNODE, STANDALONE by default
+}
+
+// OnboardEndnodeWithGatewayRequest for requesting Onboard endnode with gateway id.
+type OnboardEndnodeWithGatewayRequest struct {
+	EndNodeVendorThingID   string `json:"endNodeVendorThingID"`
+	EndNodePassword        string `json:"endNodePassword"`
+	GatewayThingID         string `json:"gatewayThingID"`
+	Owner                  string `json:"owner"`
+	EndNodeThingProperties string `json:"endNodeThingProperties,omitempty"`
+	EndNodeThingType       string `json:"endNodeThingType,omitempty"`
+}
+
+// OnboardEndnodeWithGatewayResponse for receiving response of onboarding endnode with gateway
+type OnboardEndnodeWithGatewayResponse struct {
+	AccessToken    string `json:"accessToken"`
+	EndNodeThingID string `json:"endNodeThingID"`
 }
 
 // UpdateCommandResultsRequest for updating command results

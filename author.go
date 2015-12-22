@@ -23,8 +23,8 @@ func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Requ
 }
 
 // OnboardGateway lets Gateway onboard to the cloud.
-// When there's no error, OnboardResponse is returned.
-func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, error) {
+// When there's no error, OnboardGatewayResponse is returned.
+func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	req, err := a.newRequest("POST", a.App.ThingIFURL("/onboardings"), r)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, 
 	if err != nil {
 		return nil, err
 	}
-	var ret OnboardResponse
+	var ret OnboardGatewayResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
@@ -216,7 +216,7 @@ func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, reques
 }
 
 // OnboardThingByOwner onboards a thing by its owner.
-func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardResponse, error) {
+func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardGatewayResponse, error) {
 	url := a.App.ThingIFURL("/onboardings")
 	req, err := a.newRequest("POST", url, request)
 	if err != nil {
@@ -229,7 +229,30 @@ func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*Onboard
 		return nil, err
 	}
 
-	var ret OnboardResponse
+	var ret OnboardGatewayResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// OnboardEndnodeWithGateway onboards an endnode with gateway id
+func (a *APIAuthor) OnboardEndnodeWithGateway(request OnboardEndnodeWithGatewayRequest) (*OnboardEndnodeWithGatewayResponse, error) {
+	url := a.App.ThingIFURL("/onboardings")
+
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.OnboardingEndNodeWithGatewayThingID+json")
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret OnboardEndnodeWithGatewayResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
