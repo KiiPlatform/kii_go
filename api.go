@@ -171,7 +171,7 @@ type PostCommandRequest struct {
 	Schema           string                   `json:"schema"`
 	SchemaVersion    int                      `json:"schemaVersion"`
 	FiredByTriggerID string                   `json:"firedByTriggerID,omitempty"`
-	Titlle           string                   `json:"title,omitempty"`
+	Title            string                   `json:"title,omitempty"`
 	Description      string                   `json:"description,omitempty"`
 	Metadata         map[string]interface{}   `json:"metadata,omitempty"`
 }
