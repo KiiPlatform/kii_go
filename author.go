@@ -239,9 +239,9 @@ func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*Onboard
 	return &ret, nil
 }
 
-// OnboardEndnodeWithGateway onboards an endnode
+// onboardEndnodeWithGateway onboards an endnode
 // request must be either OnboardEndnodeWithGatewayVendorThingIDRequest or OnboardEndnodeWithGatewayThingIDRequest
-func (a *APIAuthor) OnboardEndnodeWithGateway(request interface{}) (*OnboardEndnodeResponse, error) {
+func (a *APIAuthor) onboardEndnodeWithGateway(request interface{}) (*OnboardEndnodeResponse, error) {
 	var contentType string
 	if reflect.TypeOf(request) == reflect.TypeOf(OnboardEndnodeWithGatewayThingIDRequest{}) {
 		contentType = "application/vnd.kii.OnboardingEndNodeWithGatewayThingID+json"
@@ -270,4 +270,14 @@ func (a *APIAuthor) OnboardEndnodeWithGateway(request interface{}) (*OnboardEndn
 	}
 
 	return &ret, nil
+}
+
+// OnboardEndnodeWithGatewayThingID onboards an endnode with thingID of gateway
+func (a *APIAuthor) OnboardEndnodeWithGatewayThingID(request OnboardEndnodeWithGatewayThingIDRequest) (*OnboardEndnodeResponse, error) {
+	return a.onboardEndnodeWithGateway(request)
+}
+
+// OnboardEndnodeWithGatewayVendorThingID onboards an endnode with vendorThingID of gateway
+func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnodeWithGatewayVendorThingIDRequest) (*OnboardEndnodeResponse, error) {
+	return a.onboardEndnodeWithGateway(request)
 }
