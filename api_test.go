@@ -25,7 +25,7 @@ func GatewayOnboard() (gateway *APIAuthor, gatewayID *string, error error) {
 		return nil, nil, err
 	}
 	requestObj := OnboardGatewayRequest{
-		VendorThingID:  "dummyEndNodeID",
+		VendorThingID:  "gatewayID",
 		ThingPassword:  "dummyPass",
 		ThingType:      "dummyType",
 		LayoutPosition: GATEWAY.String(),
@@ -57,9 +57,8 @@ func RegisterAnEndNode(author *APIAuthor) (endNodeID string, error error) {
 	responseObj, err := author.RegisterThing(requestObj)
 	if err != nil {
 		return "", err
-	} else {
-		return responseObj.ThingID, nil
 	}
+	return responseObj.ThingID, nil
 }
 
 func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
@@ -646,7 +645,7 @@ func TestOnboardThingByOwnerFail(t *testing.T) {
 	}
 }
 
-func TestOnboardEndNodeWithGatewaySuccess(t *testing.T) {
+func TestOnboardEndNodeWithGatewayIDSuccess(t *testing.T) {
 	// get a login user
 	author, userID, err := GetLoginKiiUser()
 	if err != nil {
@@ -670,11 +669,83 @@ func TestOnboardEndNodeWithGatewaySuccess(t *testing.T) {
 
 	// create an endnode
 	endnodeID, err := RegisterAnEndNode(author)
-	owgreq := OnboardEndnodeRequest{
-		EndNodeVendorThingID: endnodeID,
-		GatewayThingID:       *gwid,
-		EndNodePassword:      "dummyPass",
-		Owner:                "user:" + userID,
+	owgreq := OnboardEndnodeWithGatewayThingIDRequest{
+		GatewayThingID: *gwid,
+		OnboardEndnodeBasicRequest: OnboardEndnodeBasicRequest{
+			EndNodeVendorThingID: endnodeID,
+			EndNodePassword:      "dummyPass",
+			Owner:                "user:" + userID,
+		},
+	}
+	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
+	if err != nil {
+		t.Errorf("onboard endnode with gateway id fail: %s ", err)
+	}
+	if owgres.AccessToken == "" {
+		t.Errorf("should have accessToken")
+	}
+	if owgres.EndNodeThingID == "" {
+		t.Errorf("should have endnodeThingID")
+	}
+}
+
+func TestOnboardEndNodeWithGatewayIDFail(t *testing.T) {
+	// get a login user
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	// create an endnode
+	owgreq := OnboardEndnodeWithGatewayThingIDRequest{
+		GatewayThingID: "dummyGatewayID",
+		OnboardEndnodeBasicRequest: OnboardEndnodeBasicRequest{
+			EndNodeVendorThingID: "dummyVendorThingID",
+			EndNodePassword:      "dummyPass",
+			Owner:                "user:" + userID,
+		},
+	}
+	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
+	if err == nil {
+		t.Errorf("onboard endnode with gateway id should fail ")
+	}
+	if owgres != nil {
+		t.Errorf("should be nil ")
+	}
+
+}
+
+func TestOnboardEndNodeWithGatewayVendorIDSuccess(t *testing.T) {
+	// get a login user
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Errorf("fail to get login user")
+	}
+
+	// onboard gateway with login user for ownership
+	_, gwid, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("fail to onboard gateway:%s", err)
+	}
+	oboreq := OnboardByOwnerRequest{
+		ThingID:       *gwid,
+		Owner:         "user:" + userID,
+		ThingPassword: "dummyPass",
+	}
+	_, err = author.OnboardThingByOwner(oboreq)
+	if err != nil {
+		t.Errorf("fail to onboard gateway by login user:%s", err)
+	}
+
+	// create an endnode
+	endnodeID, err := RegisterAnEndNode(author)
+	owgreq := OnboardEndnodeWithGatewayVendorThingIDRequest{
+		GatewayVendorThingID: "gatewayID",
+		OnboardEndnodeBasicRequest: OnboardEndnodeBasicRequest{
+			EndNodeVendorThingID: endnodeID,
+			EndNodePassword:      "dummyPass",
+			Owner:                "user:" + userID,
+		},
 	}
 	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
 	if err != nil {
@@ -690,17 +761,14 @@ func TestOnboardEndNodeWithGatewaySuccess(t *testing.T) {
 
 func TestOnboardEndNodeWithGatewayFail(t *testing.T) {
 	// get a login user
-	author, userID, err := GetLoginKiiUser()
+	author, _, err := GetLoginKiiUser()
 	if err != nil {
 		t.Errorf("fail to get login user")
 	}
 
 	// create an endnode
-	owgreq := OnboardEndnodeRequest{
-		EndNodeVendorThingID: "dummyEndnodeID",
-		GatewayThingID:       "dummyGatewayID",
-		EndNodePassword:      "dummyPass",
-		Owner:                "user:" + userID,
+	owgreq := map[string]string{
+		"gatewayThingID": "dummyID",
 	}
 	owgres, err := author.OnboardEndnodeWithGateway(owgreq)
 	if err == nil {

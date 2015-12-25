@@ -189,14 +189,26 @@ type OnboardByOwnerRequest struct {
 	LayoutPosition string `json:"layoutPosition,omitempty"` // pattern: GATEWAY|STANDALONE|ENDNODE, STANDALONE by default
 }
 
-// OnboardEndnodeRequest for requesting Onboard endnode with gateway id.
-type OnboardEndnodeRequest struct {
+// OnboardEndnodeBasicRequest is the command fields for
+// OnboardEndnodeWithGatewayThingIDRequest and OnboardEndnodeWithGatewayVendorThingIDRequest
+type OnboardEndnodeBasicRequest struct {
 	EndNodeVendorThingID   string `json:"endNodeVendorThingID"`
 	EndNodePassword        string `json:"endNodePassword"`
-	GatewayThingID         string `json:"gatewayThingID"`
 	Owner                  string `json:"owner"`
 	EndNodeThingProperties string `json:"endNodeThingProperties,omitempty"`
 	EndNodeThingType       string `json:"endNodeThingType,omitempty"`
+}
+
+// OnboardEndnodeWithGatewayThingIDRequest for requesting Onboard with thingID of gateway
+type OnboardEndnodeWithGatewayThingIDRequest struct {
+	GatewayThingID string `json:"gatewayThingID"`
+	OnboardEndnodeBasicRequest
+}
+
+// OnboardEndnodeWithGatewayVendorThingIDRequest for requesting Onboard with vendorThingID of gateway
+type OnboardEndnodeWithGatewayVendorThingIDRequest struct {
+	GatewayVendorThingID string `json:"gatewayVendorThingID"`
+	OnboardEndnodeBasicRequest
 }
 
 // OnboardEndnodeResponse for receiving response of onboarding endnode with gateway

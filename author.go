@@ -2,8 +2,10 @@ package kii
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 // APIAuthor represents API author.
@@ -237,15 +239,25 @@ func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*Onboard
 	return &ret, nil
 }
 
-// OnboardEndnodeWithGateway onboards an endnode with gateway id
-func (a *APIAuthor) OnboardEndnodeWithGateway(request OnboardEndnodeRequest) (*OnboardEndnodeResponse, error) {
+// OnboardEndnodeWithGateway onboards an endnode
+// request must be either OnboardEndnodeWithGatewayVendorThingIDRequest or OnboardEndnodeWithGatewayThingIDRequest
+func (a *APIAuthor) OnboardEndnodeWithGateway(request interface{}) (*OnboardEndnodeResponse, error) {
+	var contentType string
+	if reflect.TypeOf(request) == reflect.TypeOf(OnboardEndnodeWithGatewayThingIDRequest{}) {
+		contentType = "application/vnd.kii.OnboardingEndNodeWithGatewayThingID+json"
+	} else if reflect.TypeOf(request) == reflect.TypeOf(OnboardEndnodeWithGatewayVendorThingIDRequest{}) {
+		contentType = "application/vnd.kii.OnboardingEndNodeWithGatewayVendorThingID+json"
+	} else {
+		return nil, errors.New("request must be either OnboardEndnodeWithGatewayThingIDRequest or OnboardEndnodeWithGatewayVendorThingIDRequest")
+	}
+
 	url := a.App.ThingIFURL("/onboardings")
 
 	req, err := a.newRequest("POST", url, request)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/vnd.kii.OnboardingEndNodeWithGatewayThingID+json")
+	req.Header.Set("Content-Type", contentType)
 
 	bodyStr, err := executeRequest(req)
 	if err != nil {
