@@ -2,8 +2,10 @@ package kii
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 // APIAuthor represents API author.
@@ -23,8 +25,8 @@ func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Requ
 }
 
 // OnboardGateway lets Gateway onboard to the cloud.
-// When there's no error, OnboardResponse is returned.
-func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, error) {
+// When there's no error, OnboardGatewayResponse is returned.
+func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardGatewayResponse, error) {
 	req, err := a.newRequest("POST", a.App.ThingIFURL("/onboardings"), r)
 	if err != nil {
 		return nil, err
@@ -34,7 +36,7 @@ func (a *APIAuthor) OnboardGateway(r *OnboardGatewayRequest) (*OnboardResponse, 
 	if err != nil {
 		return nil, err
 	}
-	var ret OnboardResponse
+	var ret OnboardGatewayResponse
 	err = json.Unmarshal(bodyStr, &ret)
 	if err != nil {
 		return nil, err
@@ -216,7 +218,7 @@ func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, reques
 }
 
 // OnboardThingByOwner onboards a thing by its owner.
-func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardResponse, error) {
+func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*OnboardGatewayResponse, error) {
 	url := a.App.ThingIFURL("/onboardings")
 	req, err := a.newRequest("POST", url, request)
 	if err != nil {
@@ -229,10 +231,53 @@ func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*Onboard
 		return nil, err
 	}
 
-	var ret OnboardResponse
+	var ret OnboardGatewayResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
 
 	return &ret, nil
+}
+
+// onboardEndnodeWithGateway onboards an endnode
+// request must be either OnboardEndnodeWithGatewayVendorThingIDRequest or OnboardEndnodeWithGatewayThingIDRequest
+func (a *APIAuthor) onboardEndnodeWithGateway(request interface{}) (*OnboardEndnodeResponse, error) {
+	var contentType string
+	if reflect.TypeOf(request) == reflect.TypeOf(OnboardEndnodeWithGatewayThingIDRequest{}) {
+		contentType = "application/vnd.kii.OnboardingEndNodeWithGatewayThingID+json"
+	} else if reflect.TypeOf(request) == reflect.TypeOf(OnboardEndnodeWithGatewayVendorThingIDRequest{}) {
+		contentType = "application/vnd.kii.OnboardingEndNodeWithGatewayVendorThingID+json"
+	} else {
+		return nil, errors.New("request must be either OnboardEndnodeWithGatewayThingIDRequest or OnboardEndnodeWithGatewayVendorThingIDRequest")
+	}
+
+	url := a.App.ThingIFURL("/onboardings")
+
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret OnboardEndnodeResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// OnboardEndnodeWithGatewayThingID onboards an endnode with thingID of gateway
+func (a *APIAuthor) OnboardEndnodeWithGatewayThingID(request OnboardEndnodeWithGatewayThingIDRequest) (*OnboardEndnodeResponse, error) {
+	return a.onboardEndnodeWithGateway(request)
+}
+
+// OnboardEndnodeWithGatewayVendorThingID onboards an endnode with vendorThingID of gateway
+func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnodeWithGatewayVendorThingIDRequest) (*OnboardEndnodeResponse, error) {
+	return a.onboardEndnodeWithGateway(request)
 }

@@ -56,8 +56,8 @@ func (r *OnboardGatewayRequest) contentType() string {
 	return "application/vnd.kii.onboardingWithVendorThingIDByThing+json"
 }
 
-// OnboardResponse for receiving response of Gateway Onboard.
-type OnboardResponse struct {
+// OnboardGatewayResponse for receiving response of Gateway Onboard.
+type OnboardGatewayResponse struct {
 	ThingID      string       `json:"thingID"`
 	AccessToken  string       `json:"accessToken"`
 	MqttEndpoint MqttEndpoint `json:"mqttEndpoint"`
@@ -171,7 +171,7 @@ type PostCommandRequest struct {
 	Schema           string                   `json:"schema"`
 	SchemaVersion    int                      `json:"schemaVersion"`
 	FiredByTriggerID string                   `json:"firedByTriggerID,omitempty"`
-	Titlle           string                   `json:"title,omitempty"`
+	Title            string                   `json:"title,omitempty"`
 	Description      string                   `json:"description,omitempty"`
 	Metadata         map[string]interface{}   `json:"metadata,omitempty"`
 }
@@ -187,6 +187,34 @@ type OnboardByOwnerRequest struct {
 	ThingPassword  string `json:"thingPassword"`
 	Owner          string `json:"owner"`
 	LayoutPosition string `json:"layoutPosition,omitempty"` // pattern: GATEWAY|STANDALONE|ENDNODE, STANDALONE by default
+}
+
+// OnboardEndnodeRequestCommon is the command fields for
+// OnboardEndnodeWithGatewayThingIDRequest and OnboardEndnodeWithGatewayVendorThingIDRequest
+type OnboardEndnodeRequestCommon struct {
+	EndNodeVendorThingID   string `json:"endNodeVendorThingID"`
+	EndNodePassword        string `json:"endNodePassword"`
+	Owner                  string `json:"owner"`
+	EndNodeThingProperties string `json:"endNodeThingProperties,omitempty"`
+	EndNodeThingType       string `json:"endNodeThingType,omitempty"`
+}
+
+// OnboardEndnodeWithGatewayThingIDRequest for requesting Onboard with thingID of gateway
+type OnboardEndnodeWithGatewayThingIDRequest struct {
+	GatewayThingID string `json:"gatewayThingID"`
+	OnboardEndnodeRequestCommon
+}
+
+// OnboardEndnodeWithGatewayVendorThingIDRequest for requesting Onboard with vendorThingID of gateway
+type OnboardEndnodeWithGatewayVendorThingIDRequest struct {
+	GatewayVendorThingID string `json:"gatewayVendorThingID"`
+	OnboardEndnodeRequestCommon
+}
+
+// OnboardEndnodeResponse for receiving response of onboarding endnode with gateway
+type OnboardEndnodeResponse struct {
+	AccessToken    string `json:"accessToken"`
+	EndNodeThingID string `json:"endNodeThingID"`
 }
 
 // UpdateCommandResultsRequest for updating command results
