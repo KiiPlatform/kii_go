@@ -670,7 +670,7 @@ func TestOnboardEndNodeWithGatewaySuccess(t *testing.T) {
 
 	// create an endnode
 	endnodeID, err := RegisterAnEndNode(author)
-	owgreq := OnboardEndnodeWithGatewayRequest{
+	owgreq := OnboardEndnodeRequest{
 		EndNodeVendorThingID: endnodeID,
 		GatewayThingID:       *gwid,
 		EndNodePassword:      "dummyPass",
@@ -696,7 +696,7 @@ func TestOnboardEndNodeWithGatewayFail(t *testing.T) {
 	}
 
 	// create an endnode
-	owgreq := OnboardEndnodeWithGatewayRequest{
+	owgreq := OnboardEndnodeRequest{
 		EndNodeVendorThingID: "dummyEndnodeID",
 		GatewayThingID:       "dummyGatewayID",
 		EndNodePassword:      "dummyPass",

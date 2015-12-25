@@ -238,7 +238,7 @@ func (a *APIAuthor) OnboardThingByOwner(request OnboardByOwnerRequest) (*Onboard
 }
 
 // OnboardEndnodeWithGateway onboards an endnode with gateway id
-func (a *APIAuthor) OnboardEndnodeWithGateway(request OnboardEndnodeWithGatewayRequest) (*OnboardEndnodeWithGatewayResponse, error) {
+func (a *APIAuthor) OnboardEndnodeWithGateway(request OnboardEndnodeRequest) (*OnboardEndnodeResponse, error) {
 	url := a.App.ThingIFURL("/onboardings")
 
 	req, err := a.newRequest("POST", url, request)
@@ -252,7 +252,7 @@ func (a *APIAuthor) OnboardEndnodeWithGateway(request OnboardEndnodeWithGatewayR
 		return nil, err
 	}
 
-	var ret OnboardEndnodeWithGatewayResponse
+	var ret OnboardEndnodeResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
