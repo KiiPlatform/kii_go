@@ -222,10 +222,16 @@ type UpdateCommandResultsRequest struct {
 	ActionResults []map[string]interface{} `json:"actionResults"`
 }
 
-// ListResponse for receiving response of list request
-type ListResponse struct {
-	Results           []map[string]interface{} `json:"results"`
-	NextPaginationKey string                   `json:"nextPaginationKey"`
+// EndNode represents end-node
+type EndNode struct {
+	ThingID       string `json:"thingID"`
+	VendorThingID string `json:"vendorThingID"`
+}
+
+// ListEndNodesResponse for receiving response of list request
+type ListEndNodesResponse struct {
+	Results           []EndNode `json:"results"`
+	NextPaginationKey string    `json:"nextPaginationKey"`
 }
 
 // ListRequest consist of parameters when request list of

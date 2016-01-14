@@ -283,7 +283,7 @@ func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnod
 }
 
 // ListEndNodes request list of endnodes belong to geateway
-func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListResponse, error) {
+func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListEndNodesResponse, error) {
 	path := fmt.Sprintf("/things/%s/end-nodes", gatewayID)
 	if listPara.BestEffortLimit != 0 || listPara.NextPaginationKey != "" {
 		path += "?"
@@ -310,7 +310,7 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListR
 	if err != nil {
 		return nil, err
 	}
-	var ret ListResponse
+	var ret ListEndNodesResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
