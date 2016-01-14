@@ -281,3 +281,39 @@ func (a *APIAuthor) OnboardEndnodeWithGatewayThingID(request OnboardEndnodeWithG
 func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnodeWithGatewayVendorThingIDRequest) (*OnboardEndnodeResponse, error) {
 	return a.onboardEndnodeWithGateway(request)
 }
+
+// ListEndNodes request list of endnodes belong to geateway
+func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListResponse, error) {
+	path := fmt.Sprintf("/things/%s/end-nodes", gatewayID)
+	if listPara.BestEffortLimit != 0 || listPara.NextPaginationKey != "" {
+		path += "?"
+		var bel string
+		if listPara.BestEffortLimit != 0 {
+			bel = fmt.Sprintf("bestEffortLimit=%d", listPara.BestEffortLimit)
+			path += bel
+		}
+		if listPara.NextPaginationKey != "" {
+			if bel != "" {
+				path += "&&"
+			}
+			path += "nextPaginationKey=" + listPara.NextPaginationKey
+		}
+
+	}
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var ret ListResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
