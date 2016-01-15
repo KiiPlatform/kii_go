@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
+	"strconv"
 )
 
 // APIAuthor represents API author.
@@ -285,21 +287,17 @@ func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnod
 // ListEndNodes request list of endnodes belong to geateway
 func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListEndNodesResponse, error) {
 	path := fmt.Sprintf("/things/%s/end-nodes", gatewayID)
-	if listPara.BestEffortLimit != 0 || listPara.NextPaginationKey != "" {
-		path += "?"
-		var bel string
-		if listPara.BestEffortLimit != 0 {
-			bel = fmt.Sprintf("bestEffortLimit=%d", listPara.BestEffortLimit)
-			path += bel
-		}
-		if listPara.NextPaginationKey != "" {
-			if bel != "" {
-				path += "&&"
-			}
-			path += "nextPaginationKey=" + listPara.NextPaginationKey
-		}
-
+	v := url.Values{}
+	if listPara.BestEffortLimit != 0 {
+		v.Set("bestEffortLimit", strconv.Itoa(listPara.BestEffortLimit))
 	}
+	if listPara.NextPaginationKey != "" {
+		v.Set("nextPaginationKey", listPara.NextPaginationKey)
+	}
+	if len(v) > 0 {
+		path += "?" + v.Encode()
+	}
+
 	url := a.App.ThingIFURL(path)
 	req, err := a.newRequest("GET", url, nil)
 	if err != nil {
