@@ -758,3 +758,74 @@ func TestOnboardEndNodeWithGatewayVendorIDSuccess(t *testing.T) {
 		t.Errorf("should have endnodeThingID")
 	}
 }
+
+func TestListEndnodeSuccess(t *testing.T) {
+	au, gatewayID, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("got error on onboard gateway %s", err)
+	}
+	endNodeID, err := RegisterAnEndNode(au)
+	if err != nil {
+		t.Errorf("got error when register an end node %s", err)
+	}
+
+	err = au.AddEndNode(*gatewayID, endNodeID)
+	if err != nil {
+		t.Errorf("got error when add end node %s", err)
+	}
+
+	lr, err := au.ListEndNodes(*gatewayID, ListRequest{})
+	if err != nil {
+		t.Errorf("got error when list endnode %s", err)
+	}
+	if len(lr.Results) < 1 {
+		t.Errorf("results should be more than 1")
+	}
+
+	// register another endnode
+	endNodeID, err = RegisterAnEndNode(au)
+	if err != nil {
+		t.Errorf("got error when register an end node %s", err)
+	}
+
+	err = au.AddEndNode(*gatewayID, endNodeID)
+	if err != nil {
+		t.Errorf("got error when add end node %s", err)
+	}
+	lr, err = au.ListEndNodes(*gatewayID, ListRequest{BestEffortLimit: 1})
+	if err != nil {
+		t.Errorf("got error when list endnode %s", err)
+	}
+	if len(lr.Results) != 1 {
+		t.Errorf("results should be 1")
+	}
+	if lr.NextPaginationKey == "" {
+		t.Errorf("nextPaginationKey should not be empty")
+	}
+
+	// request with nextPaginationKey
+	lr, err = au.ListEndNodes(*gatewayID, ListRequest{NextPaginationKey: lr.NextPaginationKey})
+	if err != nil {
+		t.Errorf("got error when list endnode %s", err)
+	}
+	if len(lr.Results) < 1 {
+		t.Errorf("results should be greater than 1")
+	}
+
+}
+
+func TestListEndnodeFail(t *testing.T) {
+	// dummy gateway
+	gwAuthor := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	lr, err := gwAuthor.ListEndNodes("dummyId", ListRequest{})
+	if err == nil {
+		t.Errorf("should fail")
+	}
+	if lr != nil {
+		t.Errorf("response should be nil")
+	}
+
+}

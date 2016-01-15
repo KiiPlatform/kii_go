@@ -222,6 +222,25 @@ type UpdateCommandResultsRequest struct {
 	ActionResults []map[string]interface{} `json:"actionResults"`
 }
 
+// EndNode represents end-node
+type EndNode struct {
+	ThingID       string `json:"thingID"`
+	VendorThingID string `json:"vendorThingID"`
+}
+
+// ListEndNodesResponse for receiving response of list request
+type ListEndNodesResponse struct {
+	Results           []EndNode `json:"results"`
+	NextPaginationKey string    `json:"nextPaginationKey"`
+}
+
+// ListRequest consist of parameters when request list of
+// data(like end-nodes) from Kii Cloud
+type ListRequest struct {
+	BestEffortLimit   int
+	NextPaginationKey string
+}
+
 // AnonymousLogin logins as Anonymous user.
 // When there's no error, APIAuthor is returned.
 func AnonymousLogin(app App) (*APIAuthor, error) {

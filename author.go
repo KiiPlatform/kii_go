@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
+	"strconv"
 )
 
 // APIAuthor represents API author.
@@ -280,4 +282,36 @@ func (a *APIAuthor) OnboardEndnodeWithGatewayThingID(request OnboardEndnodeWithG
 // OnboardEndnodeWithGatewayVendorThingID onboards an endnode with vendorThingID of gateway
 func (a *APIAuthor) OnboardEndnodeWithGatewayVendorThingID(request OnboardEndnodeWithGatewayVendorThingIDRequest) (*OnboardEndnodeResponse, error) {
 	return a.onboardEndnodeWithGateway(request)
+}
+
+// ListEndNodes request list of endnodes belong to geateway
+func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListEndNodesResponse, error) {
+	path := fmt.Sprintf("/things/%s/end-nodes", gatewayID)
+	v := url.Values{}
+	if listPara.BestEffortLimit != 0 {
+		v.Set("bestEffortLimit", strconv.Itoa(listPara.BestEffortLimit))
+	}
+	if listPara.NextPaginationKey != "" {
+		v.Set("nextPaginationKey", listPara.NextPaginationKey)
+	}
+	if len(v) > 0 {
+		path += "?" + v.Encode()
+	}
+
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var ret ListEndNodesResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
 }
