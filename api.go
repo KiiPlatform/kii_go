@@ -241,6 +241,38 @@ type ListRequest struct {
 	NextPaginationKey string
 }
 
+// CreateObjectResponse for receiving response of create object
+type CreateObjectResponse struct {
+	ObjectID string `json:"objectID"`
+	CreateAt int64  `json:"createAt"`
+	DataType string `json:"dataType"`
+}
+
+// ListObjectsResponse for receiving response of list object request
+type ListObjectsResponse struct {
+	Results           []map[string]interface{}
+	NextPaginationKey string
+}
+
+type bucketQuery struct {
+	Clause     interface{} `json:"clause"`
+	OrderBy    string      `json:"orderBy,omitempty"`
+	Descending bool        `json:"descending,omitempty"`
+}
+
+// queryBucketRequest for query object for bucket
+type queryBucketRequest struct {
+	BucketQuery     bucketQuery `json:"bucketQuery"`
+	BestEffortLimit string      `json:"bestEffortLimit,omitempty"`
+	PaginationKey   string      `json:"paginationKey,omitempty"`
+}
+
+type queryBucketResponse struct {
+	QueryDescription  string                   `json:"queryDescription"`
+	Results           []map[string]interface{} `json:"results"`
+	NextPaginationKey string                   `json:"nextPaginationKey"`
+}
+
 // AnonymousLogin logins as Anonymous user.
 // When there's no error, APIAuthor is returned.
 func AnonymousLogin(app App) (*APIAuthor, error) {

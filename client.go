@@ -59,3 +59,9 @@ func executeRequest(req *http.Request) ([]byte, error) {
 	}
 	return b, nil
 }
+
+func allQueryClause() interface{} {
+	return map[string]string{
+		"type": "all",
+	}
+}
