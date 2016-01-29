@@ -341,7 +341,7 @@ func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map
 
 // ListAllThingScopeObjects list all objects of the specified thing scope bucket
 func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara ListRequest) (*ListObjectsResponse, error) {
-	clause := allQueryClause()
+	clause := AllQueryClause()
 	request := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause: clause,

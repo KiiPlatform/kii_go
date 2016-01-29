@@ -901,20 +901,9 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 	}
 
 	//Test QueryObjects
-	cCluase := map[string]interface{}{
-		"type":  "eq",
-		"field": "country",
-		"value": "us",
-	}
-	aClause := map[string]interface{}{
-		"type":  "eq",
-		"field": "age",
-		"value": 25,
-	}
-	qClause := map[string]interface{}{
-		"type":    "and",
-		"clauses": []map[string]interface{}{cCluase, aClause},
-	}
+	cCluase := EqualsClause("country", "us")
+	aClause := EqualsClause("age", 25)
+	qClause := AndClause([]Clause{cCluase, aClause})
 	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,
@@ -1003,20 +992,9 @@ func TestQueryObjectsFail(t *testing.T) {
 	}
 
 	//Test QueryObjects
-	cCluase := map[string]interface{}{
-		"type":  "eq",
-		"field": "country",
-		"value": "us",
-	}
-	aClause := map[string]interface{}{
-		"type":  "eq",
-		"field": "age",
-		"value": 25,
-	}
-	qClause := map[string]interface{}{
-		"type":    "and",
-		"clauses": []map[string]interface{}{cCluase, aClause},
-	}
+	cCluase := EqualsClause("country", "us")
+	aClause := EqualsClause("age", 25)
+	qClause := AndClause([]Clause{cCluase, aClause})
 	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,

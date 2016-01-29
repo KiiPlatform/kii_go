@@ -256,9 +256,9 @@ type ListObjectsResponse struct {
 
 // BucketQuery struct for QueryObjectsRequest
 type BucketQuery struct {
-	Clause     interface{} `json:"clause"`
-	OrderBy    string      `json:"orderBy,omitempty"`
-	Descending bool        `json:"descending,omitempty"`
+	Clause     Clause `json:"clause"`
+	OrderBy    string `json:"orderBy,omitempty"`
+	Descending bool   `json:"descending,omitempty"`
 }
 
 // QueryObjectsRequest for query object for bucket
@@ -274,6 +274,9 @@ type QueryObjectResponse struct {
 	Results           []map[string]interface{} `json:"results"`
 	NextPaginationKey string                   `json:"nextPaginationKey"`
 }
+
+// Clause for query
+type Clause map[string]interface{}
 
 // AnonymousLogin logins as Anonymous user.
 // When there's no error, APIAuthor is returned.
@@ -325,4 +328,38 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 		Token: respObj.AccessToken,
 		App:   app,
 	}, nil
+}
+
+// EqualsClause return clause for equals
+func EqualsClause(key string, value interface{}) Clause {
+
+	equals := map[string]interface{}{
+		"type":  "eq",
+		"field": key,
+		"value": value,
+	}
+	return equals
+}
+
+// AndClause return clause for and
+func AndClause(clauses []Clause) Clause {
+	return map[string]interface{}{
+		"type":    "and",
+		"clauses": clauses,
+	}
+}
+
+// OrClause return clause for and
+func OrClause(clauses []Clause) Clause {
+	return map[string]interface{}{
+		"type":    "or",
+		"clauses": clauses,
+	}
+}
+
+// AllQueryClause return clause for all query
+func AllQueryClause() Clause {
+	return map[string]interface{}{
+		"type": "all",
+	}
 }
