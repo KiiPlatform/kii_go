@@ -254,20 +254,22 @@ type ListObjectsResponse struct {
 	NextPaginationKey string
 }
 
-type bucketQuery struct {
+// BucketQuery struct for QueryBucketRequest
+type BucketQuery struct {
 	Clause     interface{} `json:"clause"`
 	OrderBy    string      `json:"orderBy,omitempty"`
 	Descending bool        `json:"descending,omitempty"`
 }
 
-// queryBucketRequest for query object for bucket
-type queryBucketRequest struct {
-	BucketQuery     bucketQuery `json:"bucketQuery"`
+// QueryBucketRequest for query object for bucket
+type QueryBucketRequest struct {
+	BucketQuery     BucketQuery `json:"bucketQuery"`
 	BestEffortLimit string      `json:"bestEffortLimit,omitempty"`
 	PaginationKey   string      `json:"paginationKey,omitempty"`
 }
 
-type queryBucketResponse struct {
+// QueryObjectResponse for receiving query buckt e
+type QueryObjectResponse struct {
 	QueryDescription  string                   `json:"queryDescription"`
 	Results           []map[string]interface{} `json:"results"`
 	NextPaginationKey string                   `json:"nextPaginationKey"`

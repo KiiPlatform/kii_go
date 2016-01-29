@@ -341,11 +341,9 @@ func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map
 
 // ListAllThingScopeObjects list all objects of the specified thing scope bucket
 func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara ListRequest) (*ListObjectsResponse, error) {
-	path := fmt.Sprintf("/things/%s/buckets/%s/query", thingID, bucketName)
-	url := a.App.CloudURL(path)
 	clause := allQueryClause()
-	request := queryBucketRequest{
-		BucketQuery: bucketQuery{
+	request := QueryBucketRequest{
+		BucketQuery: BucketQuery{
 			Clause: clause,
 		},
 	}
@@ -355,16 +353,14 @@ func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara
 	if listPara.NextPaginationKey != "" {
 		request.PaginationKey = listPara.NextPaginationKey
 	}
-	qr, err := a.queryBucket(url, request)
+	resp, err := a.QueryObjects(thingID, bucketName, request)
 	if err != nil {
 		return nil, err
 	}
-	re := ListObjectsResponse{
-		Results:           qr.Results,
-		NextPaginationKey: qr.NextPaginationKey,
-	}
-	return &re, nil
-
+	return &ListObjectsResponse{
+		Results:           resp.Results,
+		NextPaginationKey: resp.NextPaginationKey,
+	}, nil
 }
 
 //DeleteThingScopeBucket delete ThingScope bucket
@@ -384,7 +380,10 @@ func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
 	return nil
 }
 
-func (a APIAuthor) queryBucket(url string, request queryBucketRequest) (*queryBucketResponse, error) {
+//QueryObjects query objects of bucket under Thing Scope
+func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryBucketRequest) (*QueryObjectResponse, error) {
+	path := fmt.Sprintf("/things/%s/buckets/%s/query", thingID, bucketName)
+	url := a.App.CloudURL(path)
 
 	req, err := a.newRequest("POST", url, request)
 	if err != nil {
@@ -400,11 +399,9 @@ func (a APIAuthor) queryBucket(url string, request queryBucketRequest) (*queryBu
 		return nil, err
 	}
 
-	var ret queryBucketResponse
+	var ret QueryObjectResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}
-
 	return &ret, nil
-
 }

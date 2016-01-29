@@ -900,6 +900,41 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		}
 	}
 
+	//Test QueryObjects
+	cCluase := map[string]interface{}{
+		"type":  "eq",
+		"field": "country",
+		"value": "us",
+	}
+	aClause := map[string]interface{}{
+		"type":  "eq",
+		"field": "age",
+		"value": 25,
+	}
+	qClause := map[string]interface{}{
+		"type":    "and",
+		"clauses": []map[string]interface{}{cCluase, aClause},
+	}
+	qreq := QueryBucketRequest{
+		BucketQuery: BucketQuery{
+			Clause:     qClause,
+			OrderBy:    "age",
+			Descending: false,
+		},
+	}
+
+	queryResp, err := au.QueryObjects(*gwID, thingBucket, qreq)
+	if err != nil {
+		t.Errorf("fail to list all object of thing scope:%s", err)
+	}
+	if queryResp == nil {
+		t.Error("listResp is nil")
+	} else {
+		if len(queryResp.Results) != 1 {
+			t.Errorf("should have 1 object :%d\n", len(listResp.Results))
+		}
+	}
+
 	// Delete the bucket
 	if err := au.DeleteThingScopeBucket(*gwID, thingBucket); err != nil {
 		t.Errorf("delete bucket fail:%s\n", err)
@@ -957,4 +992,46 @@ func TestDeleteThingScopeBucketFail(t *testing.T) {
 	if err == nil {
 		t.Error("should fail")
 	}
+}
+
+func TestQueryObjectsFail(t *testing.T) {
+
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	//Test QueryObjects
+	cCluase := map[string]interface{}{
+		"type":  "eq",
+		"field": "country",
+		"value": "us",
+	}
+	aClause := map[string]interface{}{
+		"type":  "eq",
+		"field": "age",
+		"value": 25,
+	}
+	qClause := map[string]interface{}{
+		"type":    "and",
+		"clauses": []map[string]interface{}{cCluase, aClause},
+	}
+	qreq := QueryBucketRequest{
+		BucketQuery: BucketQuery{
+			Clause:     qClause,
+			OrderBy:    "age",
+			Descending: false,
+		},
+	}
+
+	queryResp, err := au.QueryObjects("dummyID", "dummyBucket", qreq)
+
+	if err == nil {
+		t.Error("should fail")
+	}
+	if queryResp != nil {
+		t.Error("response should be nil")
+	}
+
 }
