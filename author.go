@@ -342,7 +342,7 @@ func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map
 // ListAllThingScopeObjects list all objects of the specified thing scope bucket
 func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara ListRequest) (*ListObjectsResponse, error) {
 	clause := allQueryClause()
-	request := QueryBucketRequest{
+	request := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause: clause,
 		},
@@ -381,7 +381,7 @@ func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
 }
 
 //QueryObjects query objects of bucket under Thing Scope
-func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryBucketRequest) (*QueryObjectResponse, error) {
+func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryObjectsRequest) (*QueryObjectResponse, error) {
 	path := fmt.Sprintf("/things/%s/buckets/%s/query", thingID, bucketName)
 	url := a.App.CloudURL(path)
 

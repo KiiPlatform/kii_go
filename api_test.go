@@ -915,7 +915,7 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		"type":    "and",
 		"clauses": []map[string]interface{}{cCluase, aClause},
 	}
-	qreq := QueryBucketRequest{
+	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,
 			OrderBy:    "age",
@@ -1017,7 +1017,7 @@ func TestQueryObjectsFail(t *testing.T) {
 		"type":    "and",
 		"clauses": []map[string]interface{}{cCluase, aClause},
 	}
-	qreq := QueryBucketRequest{
+	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,
 			OrderBy:    "age",
