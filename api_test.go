@@ -900,6 +900,11 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		}
 	}
 
+	// Delete the bucket
+	if err := au.DeleteThingScopeBucket(*gwID, thingBucket); err != nil {
+		t.Errorf("delete bucket fail:%s\n", err)
+	}
+
 }
 func TestCreateThingScopeObjectFail(t *testing.T) {
 
@@ -939,4 +944,17 @@ func TestListAllThingScopeObjectsFail(t *testing.T) {
 		t.Error("response should be nil")
 	}
 
+}
+
+func TestDeleteThingScopeBucketFail(t *testing.T) {
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	err := au.DeleteThingScopeBucket("dummyID", "dummyBucket")
+	if err == nil {
+		t.Error("should fail")
+	}
 }

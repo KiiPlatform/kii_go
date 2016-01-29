@@ -367,6 +367,23 @@ func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara
 
 }
 
+//DeleteThingScopeBucket delete ThingScope bucket
+func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
+	path := fmt.Sprintf("/things/%s/buckets/%s", thingID, bucketName)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a APIAuthor) queryBucket(url string, request queryBucketRequest) (*queryBucketResponse, error) {
 
 	req, err := a.newRequest("POST", url, request)
