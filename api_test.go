@@ -829,3 +829,187 @@ func TestListEndnodeFail(t *testing.T) {
 	}
 
 }
+
+func TestCreateThingScopeObjectSuccess(t *testing.T) {
+	thingBucket := fmt.Sprintf("myBucket%d", time.Now().UnixNano())
+
+	au, gwID, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("fail to onboard gateway %s", err)
+	}
+
+	object := map[string]interface{}{
+		"age":     23,
+		"country": "cn",
+	}
+
+	resp, err := au.CreateThingScopeObject(*gwID, thingBucket, object)
+	if err != nil {
+		t.Errorf("fail to create object :%s", err)
+	}
+	if resp == nil {
+		t.Error("response is nil")
+	}
+
+	object2 := map[string]interface{}{
+		"age":     25,
+		"country": "us",
+	}
+
+	resp, err = au.CreateThingScopeObject(*gwID, thingBucket, object2)
+	if err != nil {
+		t.Errorf("fail to create object :%s", err)
+	}
+	if resp == nil {
+		t.Error("response is nil")
+	}
+
+	listResp, err := au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{})
+	if err != nil {
+		t.Errorf("fail to list all object of thing scope:%s", err)
+	}
+	if listResp == nil {
+		t.Error("listResp is nil")
+	} else {
+		if len(listResp.Results) != 2 {
+			t.Errorf("should have 2 object :%d\n", len(listResp.Results))
+		}
+	}
+
+	listResp, err = au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{BestEffortLimit: 1})
+	if err != nil {
+		t.Errorf("fail to list all object of thing scope:%s", err)
+	}
+	if listResp == nil {
+		t.Error("listResp is nil")
+	} else {
+		if len(listResp.Results) != 1 {
+			t.Errorf("should have 1 object :%d\n", len(listResp.Results))
+		}
+
+		listResp, err = au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{NextPaginationKey: listResp.NextPaginationKey})
+		if err != nil {
+			t.Errorf("fail to list all object of thing scope:%s", err)
+		}
+		if listResp == nil {
+			t.Error("listResp is nil")
+		} else {
+			if len(listResp.Results) != 1 {
+				t.Errorf("should have 1 object :%d\n", len(listResp.Results))
+			}
+		}
+	}
+
+	//Test QueryObjects
+	cCluase := EqualsClause("country", "us")
+	aClause := EqualsClause("age", 25)
+	qClause := AndClause(cCluase, aClause)
+	qreq := QueryObjectsRequest{
+		BucketQuery: BucketQuery{
+			Clause:     qClause,
+			OrderBy:    "age",
+			Descending: false,
+		},
+	}
+
+	queryResp, err := au.QueryObjects(*gwID, thingBucket, qreq)
+	if err != nil {
+		t.Errorf("fail to list all object of thing scope:%s", err)
+	}
+	if queryResp == nil {
+		t.Error("listResp is nil")
+	} else {
+		if len(queryResp.Results) != 1 {
+			t.Errorf("should have 1 object :%d\n", len(listResp.Results))
+		}
+	}
+
+	// Delete the bucket
+	if err := au.DeleteThingScopeBucket(*gwID, thingBucket); err != nil {
+		t.Errorf("delete bucket fail:%s\n", err)
+	}
+
+}
+func TestCreateThingScopeObjectFail(t *testing.T) {
+
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	object := map[string]interface{}{
+		"age":     23,
+		"country": "cn",
+	}
+
+	resp, err := au.CreateThingScopeObject("dummyThingID", "dummyBucket", object)
+	if err == nil {
+		t.Error("should fail")
+	}
+	if resp != nil {
+		t.Error("response should be nil")
+	}
+}
+
+func TestListAllThingScopeObjectsFail(t *testing.T) {
+
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	resp, err := au.ListAllThingScopeObjects("dummyID", "dummyBucket", ListRequest{})
+	if err == nil {
+		t.Error("should fail")
+	}
+	if resp != nil {
+		t.Error("response should be nil")
+	}
+
+}
+
+func TestDeleteThingScopeBucketFail(t *testing.T) {
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	err := au.DeleteThingScopeBucket("dummyID", "dummyBucket")
+	if err == nil {
+		t.Error("should fail")
+	}
+}
+
+func TestQueryObjectsFail(t *testing.T) {
+
+	// dummy gateway
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+
+	//Test QueryObjects
+	cCluase := EqualsClause("country", "us")
+	aClause := EqualsClause("age", 25)
+	qClause := AndClause(cCluase, aClause)
+	qreq := QueryObjectsRequest{
+		BucketQuery: BucketQuery{
+			Clause:     qClause,
+			OrderBy:    "age",
+			Descending: false,
+		},
+	}
+
+	queryResp, err := au.QueryObjects("dummyID", "dummyBucket", qreq)
+
+	if err == nil {
+		t.Error("should fail")
+	}
+	if queryResp != nil {
+		t.Error("response should be nil")
+	}
+
+}

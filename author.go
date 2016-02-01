@@ -315,3 +315,93 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListE
 
 	return &ret, nil
 }
+
+// CreateThingScopeObject create Thing scope object
+func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map[string]interface{}) (*CreateObjectResponse, error) {
+	path := fmt.Sprintf("/things/%s/buckets/%s/objects", thingID, bucketName)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("POST", url, object)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret CreateObjectResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+
+}
+
+// ListAllThingScopeObjects list all objects of the specified thing scope bucket
+func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara ListRequest) (*ListObjectsResponse, error) {
+	clause := AllQueryClause()
+	request := QueryObjectsRequest{
+		BucketQuery: BucketQuery{
+			Clause: clause,
+		},
+	}
+	if listPara.BestEffortLimit != 0 {
+		request.BestEffortLimit = strconv.Itoa(listPara.BestEffortLimit)
+	}
+	if listPara.NextPaginationKey != "" {
+		request.PaginationKey = listPara.NextPaginationKey
+	}
+	resp, err := a.QueryObjects(thingID, bucketName, request)
+	if err != nil {
+		return nil, err
+	}
+	return &ListObjectsResponse{
+		Results:           resp.Results,
+		NextPaginationKey: resp.NextPaginationKey,
+	}, nil
+}
+
+//DeleteThingScopeBucket delete ThingScope bucket
+func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
+	path := fmt.Sprintf("/things/%s/buckets/%s", thingID, bucketName)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//QueryObjects query objects of bucket under Thing Scope
+func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryObjectsRequest) (*QueryObjectResponse, error) {
+	path := fmt.Sprintf("/things/%s/buckets/%s/query", thingID, bucketName)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-type", "application/vnd.kii.QueryRequest+json")
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret QueryObjectResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
