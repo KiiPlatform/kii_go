@@ -903,7 +903,7 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 	//Test QueryObjects
 	cCluase := EqualsClause("country", "us")
 	aClause := EqualsClause("age", 25)
-	qClause := AndClause([]Clause{cCluase, aClause})
+	qClause := AndClause(cCluase, aClause)
 	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,
@@ -994,7 +994,7 @@ func TestQueryObjectsFail(t *testing.T) {
 	//Test QueryObjects
 	cCluase := EqualsClause("country", "us")
 	aClause := EqualsClause("age", 25)
-	qClause := AndClause([]Clause{cCluase, aClause})
+	qClause := AndClause(cCluase, aClause)
 	qreq := QueryObjectsRequest{
 		BucketQuery: BucketQuery{
 			Clause:     qClause,

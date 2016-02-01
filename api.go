@@ -332,26 +332,24 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 
 // EqualsClause return clause for equals
 func EqualsClause(key string, value interface{}) Clause {
-
-	equals := map[string]interface{}{
+	return Clause{
 		"type":  "eq",
 		"field": key,
 		"value": value,
 	}
-	return equals
 }
 
 // AndClause return clause for and
-func AndClause(clauses []Clause) Clause {
-	return map[string]interface{}{
+func AndClause(clauses ...Clause) Clause {
+	return Clause{
 		"type":    "and",
 		"clauses": clauses,
 	}
 }
 
 // OrClause return clause for and
-func OrClause(clauses []Clause) Clause {
-	return map[string]interface{}{
+func OrClause(clauses ...Clause) Clause {
+	return Clause{
 		"type":    "or",
 		"clauses": clauses,
 	}
@@ -359,7 +357,7 @@ func OrClause(clauses []Clause) Clause {
 
 // AllQueryClause return clause for all query
 func AllQueryClause() Clause {
-	return map[string]interface{}{
+	return Clause{
 		"type": "all",
 	}
 }
