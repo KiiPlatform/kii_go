@@ -1,9 +1,12 @@
 package kii
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/koron/go-dproxy"
 )
 
 var testApp App
@@ -67,24 +70,47 @@ func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
 		App:   testApp,
 	}
 
-	userName := fmt.Sprintf("user%d", time.Now().UnixNano())
-	requestObj := UserRegisterRequest{
-		LoginName: userName,
-		Password:  "dummyPassword",
-	}
-	resp, err := author.RegisterKiiUser(requestObj)
-	if err != nil {
-		return nil, "", err
-	}
+	// userName := fmt.Sprintf("user%d", time.Now().UnixNano())
+	userName := "user4KiiGoTest"
+	password := "dummyPassword"
 
+	// login or register a user
 	loginReqObj := UserLoginRequest{
-		UserName: resp.LoginName,
-		Password: "dummyPassword",
+		UserName: userName,
+		Password: password,
 	}
 	respObj, err := author.LoginAsKiiUser(loginReqObj)
 	if err != nil {
-		return nil, "", err
+		var v interface{}
+
+		if err := json.Unmarshal([]byte(err.Error()), &v); err != nil {
+			return nil, "", err
+		}
+		fmt.Println("ok here")
+		errCode, err := dproxy.New(v).M("errorCode").String()
+		if err != nil {
+			return nil, "", err
+		}
+
+		if errCode != "invalid_grant" {
+			return nil, "", err
+		}
+
+		requestObj := UserRegisterRequest{
+			LoginName: userName,
+			Password:  password,
+		}
+		_, err = author.RegisterKiiUser(requestObj)
+		if err != nil {
+			return nil, "", err
+		}
+		// login again to get token
+		respObj, err = author.LoginAsKiiUser(loginReqObj)
+		if err != nil {
+			return nil, "", err
+		}
 	}
+
 	author.Token = respObj.AccessToken
 	return &author, respObj.ID, nil
 }
@@ -456,6 +482,9 @@ func TestPostCommandSuccess(t *testing.T) {
 	if len(postResp.CommandID) < 1 {
 		t.Errorf("got invalid response object %+v", postResp)
 	}
+	if err := author.DeleteThing(endnodeID); err != nil {
+		t.Error("should not fail to delete Thing", err)
+	}
 }
 
 func TestPostCommandFail(t *testing.T) {
@@ -556,6 +585,10 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("update command results faild: %s", err)
 	}
+
+	if err := author.DeleteThing(endnodeID); err != nil {
+		t.Error("should not fail to delete Thing", err)
+	}
 }
 
 func TestUpdateCommandResultsFail(t *testing.T) {
@@ -623,6 +656,9 @@ func TestOnboardThingByOwnerSuccess(t *testing.T) {
 	}
 	if responseObj.MqttEndpoint.PortTCP < 1 {
 		t.Errorf("got invalid endpoint object %+v", responseObj.MqttEndpoint)
+	}
+	if err := author.DeleteThing(endnodeID); err != nil {
+		t.Error("should not fail to delete Thing", err)
 	}
 }
 func TestOnboardThingByOwnerFail(t *testing.T) {
@@ -1010,6 +1046,94 @@ func TestQueryObjectsFail(t *testing.T) {
 	}
 	if queryResp != nil {
 		t.Error("response should be nil")
+	}
+
+}
+
+func TestUpdateVendorThingIDSuccess(t *testing.T) {
+	author, userID, err := GetLoginKiiUser()
+	if err != nil {
+		t.Error("fail to get login user", err)
+	}
+
+	newVid := fmt.Sprintf("newVID%d", time.Now().UnixNano())
+	thingID, err := RegisterAnEndNode(author)
+	if err != nil {
+		t.Error("should not fail to register thing", err)
+	}
+
+	or := OnboardByOwnerRequest{
+		ThingID:       thingID,
+		ThingPassword: "dummyPass",
+		Owner:         "user:" + userID,
+	}
+	// onboard to get ownership
+	_, err = author.OnboardThingByOwner(or)
+	if err != nil {
+		t.Error("fail to onboard", err)
+	}
+
+	request := UpdateVendorThingIDRequest{
+		VendorThingID: newVid,
+		Password:      "newPass",
+	}
+	err = author.UpdateVendorThingID(thingID, request)
+	if err != nil {
+		t.Error("should not fail to update vendorThingID", err)
+	}
+
+	resp, err := author.GetThing(thingID)
+
+	if err != nil {
+		t.Error("should not fail to get Thing", err)
+	} else {
+		if resp.VendorThingID != newVid {
+			t.Error("vendorThingID should be updated", resp.VendorThingID)
+		}
+	}
+
+	if err := author.DeleteThing(thingID); err != nil {
+		t.Error("should not fail to delete Thing", err)
+	}
+}
+
+func TestUpdateVendorThingIDFail(t *testing.T) {
+
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	err := au.UpdateVendorThingID("dummyID", UpdateVendorThingIDRequest{
+		VendorThingID: "newVendorThingiD",
+		Password:      "newPass",
+	})
+	if err == nil {
+		t.Error("should fail")
+	}
+}
+
+func TestGetThingFail(t *testing.T) {
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	resp, err := au.GetThing("dummyID")
+	if err == nil {
+		t.Error("should fail")
+	}
+	if resp != nil {
+		t.Error("response should be nil")
+	}
+}
+
+func TestDeleteThingFail(t *testing.T) {
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	err := au.DeleteThing("dummyID")
+	if err == nil {
+		t.Error("should fail")
 	}
 
 }
