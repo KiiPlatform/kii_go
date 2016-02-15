@@ -405,3 +405,61 @@ func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryObjects
 	}
 	return &ret, nil
 }
+
+//UpdateVendorThingID update Vendor ThingID of exsiting Thing
+func (a APIAuthor) UpdateVendorThingID(thingID string, request UpdateVendorThingIDRequest) error {
+	path := fmt.Sprintf("/things/%s/vendor-thing-id", thingID)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("PUT", url, request)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-type", "application/vnd.kii.VendorThingIDUpdateRequest+json")
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetThing get thing info
+func (a APIAuthor) GetThing(thingID string) (*GetThingResponse, error) {
+	path := fmt.Sprintf("/things/%s", thingID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret GetThingResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// DeleteThing delete an exsiting Thing
+func (a APIAuthor) DeleteThing(thingID string) error {
+	path := fmt.Sprintf("/things/%s", thingID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
