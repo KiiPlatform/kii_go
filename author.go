@@ -463,3 +463,22 @@ func (a APIAuthor) DeleteThing(thingID string) error {
 	}
 	return nil
 }
+
+// ReportEndnodeStatus reports online status of endnode by gateway
+func (a APIAuthor) ReportEndnodeStatus(gatewayID, endnodeID string, request ReportEndnodeStatusRequest) error {
+	path := fmt.Sprintf("/things/%s/end-nodes/%s/connection", gatewayID, endnodeID)
+	url := a.App.ThingIFURL(path)
+
+	req, err := a.newRequest("PUT", url, request)
+	if err != nil {
+		return err
+	}
+	// a.newRequest() don't set Content-Type for nil body. So we must set it
+	// explicitly.
+	req.Header.Set("Content-Type", "application/json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
+}
