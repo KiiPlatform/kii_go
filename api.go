@@ -293,6 +293,11 @@ type GetThingResponse struct {
 	OnlineStatusModifiedAt int    `json:"_onlineStatusModifiedAt"`
 }
 
+// ReportEndnodeStatusRequest for reporting endnode online status
+type ReportEndnodeStatusRequest struct {
+	Online bool `json:"online"`
+}
+
 // Clause for query
 type Clause map[string]interface{}
 
