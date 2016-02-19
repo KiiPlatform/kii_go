@@ -354,7 +354,7 @@ func TestPostCommandSuccess(t *testing.T) {
 	_, err = author.OnboardThingByOwner(onboardRequest)
 
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -384,7 +384,7 @@ func TestPostCommandFail(t *testing.T) {
 		App:   testApp,
 	}
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -427,7 +427,7 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 	}
 
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -463,7 +463,7 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 		App:   testApp,
 	}
 	actionResults := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"result": false,
 			},
@@ -489,7 +489,7 @@ func TestUpdateCommandResultsFail(t *testing.T) {
 		App:   testApp,
 	}
 	actionResults := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"result": false,
 			},
