@@ -1,6 +1,8 @@
 # Kii Go
-Go library connect to Kii cloud API.
+[![Go Report Card](https://goreportcard.com/badge/github.com/KiiPlatform/kii_go)](https://goreportcard.com/report/github.com/KiiPlatform/kii_go)
+[![Circle CI](https://circleci.com/gh/KiiPlatform/kii_go/tree/master.svg?style=svg)](https://circleci.com/gh/KiiPlatform/kii_go/tree/master)
 
+Go library connect to Kii cloud API.
 ## How to use
 ```shell
 mkdir -p $GOPATH/github.com/KiiPlatform
