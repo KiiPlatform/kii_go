@@ -354,7 +354,7 @@ func TestPostCommandSuccess(t *testing.T) {
 	_, err = author.OnboardThingByOwner(onboardRequest)
 
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -384,7 +384,7 @@ func TestPostCommandFail(t *testing.T) {
 		App:   testApp,
 	}
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -427,7 +427,7 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 	}
 
 	actions := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"power": true,
 			},
@@ -463,7 +463,7 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 		App:   testApp,
 	}
 	actionResults := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"result": false,
 			},
@@ -489,7 +489,7 @@ func TestUpdateCommandResultsFail(t *testing.T) {
 		App:   testApp,
 	}
 	actionResults := []map[string]interface{}{
-		map[string]interface{}{
+		{
 			"turnPower": map[string]interface{}{
 				"result": false,
 			},
@@ -791,19 +791,7 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		t.Error("response is nil")
 	}
 
-	listResp, err := au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{})
-	if err != nil {
-		t.Errorf("fail to list all object of thing scope:%s", err)
-	}
-	if listResp == nil {
-		t.Error("listResp is nil")
-	} else {
-		if len(listResp.Results) != 2 {
-			t.Errorf("should have 2 object :%d\n", len(listResp.Results))
-		}
-	}
-
-	listResp, err = au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{BestEffortLimit: 1})
+	listResp, err := au.ListAllThingScopeObjects(*gwID, thingBucket, ListRequest{BestEffortLimit: 1})
 	if err != nil {
 		t.Errorf("fail to list all object of thing scope:%s", err)
 	}
@@ -827,6 +815,41 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		}
 	}
 
+	// Delete the bucket
+	if err := au.DeleteThingScopeBucket(*gwID, thingBucket); err != nil {
+		t.Errorf("delete bucket fail:%s\n", err)
+	}
+
+}
+
+func TestQueryObjectSuccess(t *testing.T) {
+	thingBucket := fmt.Sprintf("myBucket%d", time.Now().UnixNano())
+
+	au, gwID, err := GatewayOnboard()
+	if err != nil {
+		t.Errorf("fail to onboard gateway %s", err)
+	}
+
+	object := map[string]interface{}{
+		"age":     23,
+		"country": "cn",
+	}
+
+	_, err = au.CreateThingScopeObject(*gwID, thingBucket, object)
+	if err != nil {
+		t.Errorf("fail to create object :%s", err)
+	}
+
+	object2 := map[string]interface{}{
+		"age":     25,
+		"country": "us",
+	}
+
+	_, err = au.CreateThingScopeObject(*gwID, thingBucket, object2)
+	if err != nil {
+		t.Errorf("fail to create object :%s", err)
+	}
+
 	//Test QueryObjects
 	cCluase := EqualsClause("country", "us")
 	aClause := EqualsClause("age", 25)
@@ -847,7 +870,7 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 		t.Error("listResp is nil")
 	} else {
 		if len(queryResp.Results) != 1 {
-			t.Errorf("should have 1 object :%d\n", len(listResp.Results))
+			t.Errorf("should have 1 object :%d\n", len(queryResp.Results))
 		}
 	}
 
@@ -855,7 +878,6 @@ func TestCreateThingScopeObjectSuccess(t *testing.T) {
 	if err := au.DeleteThingScopeBucket(*gwID, thingBucket); err != nil {
 		t.Errorf("delete bucket fail:%s\n", err)
 	}
-
 }
 func TestCreateThingScopeObjectFail(t *testing.T) {
 

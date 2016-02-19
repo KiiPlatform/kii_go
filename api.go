@@ -9,7 +9,7 @@ import (
 )
 
 // Logger set logger for kii module.  Default is discard logger, no logs are
-// outputed.  Please set a valid logger if you want to make kii module put
+// outputted.  Please set a valid logger if you want to make kii module put
 // logs.
 //
 //	kii.Logger = log.New(os.Stderr, "", log.LstdFlags)
@@ -27,7 +27,7 @@ const (
 	GATEWAY
 )
 
-// Obtain Layout postion of the Thing in string.
+// Obtain Layout position of the Thing in string.
 func (lp LayoutPosition) String() string {
 	switch lp {
 	case ENDNODE:
