@@ -1,9 +1,6 @@
 package kii
 
-import (
-	"net/http"
-	"strings"
-)
+import "strings"
 
 // App represents Application in Kii Cloud.
 type App struct {
@@ -44,7 +41,7 @@ func (a *App) ThingIFURL(path string) string {
 	return a.rootURL() + "/thing-if/apps/" + a.AppID + path
 }
 
-func (a *App) newRequest(method, url string, body interface{}) (*http.Request, error) {
+func (a *App) newRequest(method, url string, body interface{}) (*request, error) {
 	req, err := newRequest(method, url, body)
 	if err != nil {
 		return nil, err

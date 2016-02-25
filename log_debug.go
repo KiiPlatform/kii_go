@@ -35,9 +35,11 @@ func headerToString(h http.Header) string {
 }
 
 // logRequest logs request and response.
-func logRequest(req *http.Request, resp *http.Response, respBody []byte) {
+func logRequest(req *http.Request, reqBody []byte, resp *http.Response, respBody []byte) {
 	var s1, s2 string
-	// TODO: setup s1.
+	if len(reqBody) > 0 {
+		s1 = string(reqBody)
+	}
 	if len(respBody) > 0 {
 		s2 = string(respBody)
 	}

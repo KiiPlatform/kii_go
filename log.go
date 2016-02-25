@@ -4,6 +4,6 @@ package kii
 
 import "net/http"
 
-func logRequest(req *http.Request, resp *http.Response, body []byte) {
+func logRequest(req *http.Request, reqBody []byte, resp *http.Response, respBody []byte) {
 	// nothing to do.
 }
