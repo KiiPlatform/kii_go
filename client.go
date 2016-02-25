@@ -39,6 +39,10 @@ func newRequest(method, url string, body interface{}) (*http.Request, error) {
 }
 
 func executeRequest(req *http.Request) ([]byte, error) {
+	return executeRequest2(req, 200, 400)
+}
+
+func executeRequest2(req *http.Request, scMin, scMax int) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -54,7 +58,7 @@ func executeRequest(req *http.Request) ([]byte, error) {
 	// FIXME: should be removed after debug?
 	Logger.Println("body: " + string(b))
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+	if resp.StatusCode < scMin || resp.StatusCode >= scMax {
 		return nil, errors.New(string(b))
 	}
 	return b, nil
