@@ -55,8 +55,7 @@ func executeRequest2(req *http.Request, scMin, scMax int) ([]byte, error) {
 		return nil, err
 	}
 
-	// FIXME: should be removed after debug?
-	Logger.Println("body: " + string(b))
+	logRequest(req, resp, b)
 
 	if resp.StatusCode < scMin || resp.StatusCode >= scMax {
 		return nil, errors.New(string(b))
