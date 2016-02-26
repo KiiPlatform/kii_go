@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 )
 
 // Logger set logger for kii module.  Default is discard logger, no logs are
@@ -325,22 +324,10 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 		return nil, err
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	bodyStr, err := executeRequest2(req, 200, 300)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		// TODO: return as an error.
-	}
-
-	bodyStr, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	// FIXME: should be removed after debug?
-	Logger.Println("body: " + string(bodyStr))
 
 	var respObj AnonymousLoginResponse
 	err = json.Unmarshal(bodyStr, &respObj)

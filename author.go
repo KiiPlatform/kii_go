@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -17,7 +16,7 @@ type APIAuthor struct {
 	App   App
 }
 
-func (a *APIAuthor) newRequest(method, url string, body interface{}) (*http.Request, error) {
+func (a *APIAuthor) newRequest(method, url string, body interface{}) (*request, error) {
 	req, err := newRequest(method, url, body)
 	if err != nil {
 		return nil, err
