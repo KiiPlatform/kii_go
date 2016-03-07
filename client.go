@@ -69,7 +69,13 @@ func executeRequest2(req *request, scMin, scMax int) ([]byte, error) {
 	logRequest(req.Request, req.body, resp, b)
 
 	if resp.StatusCode < scMin || resp.StatusCode >= scMax {
-		return nil, errors.New(string(b))
+		var ce CloudError
+		err = json.Unmarshal(b, &ce)
+		if err != nil {
+			return nil, errors.New(string(b))
+		}
+		ce.HttpStatus = resp.StatusCode
+		return nil, ce
 	}
 	return b, nil
 }
