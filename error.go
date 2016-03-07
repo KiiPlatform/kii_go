@@ -1,20 +1,20 @@
 package kii
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 // ErrorResponse represents error response returned by Kii Cloud.
 type ErrorResponse struct {
 	ErrorCode string `json:"errorCode"`
-	Message string `json:"message"`
+	Message   string `json:"message"`
 }
 
 // CloudError represents error returned by Kii Cloud.
 type CloudError struct {
 	ErrorResponse
-	HTTPStatus int
+	HTTPStatus  int
 	RawResponse string
 }
 
