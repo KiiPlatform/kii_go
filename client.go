@@ -3,7 +3,6 @@ package kii
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -69,7 +68,8 @@ func executeRequest2(req *request, scMin, scMax int) ([]byte, error) {
 	logRequest(req.Request, req.body, resp, b)
 
 	if resp.StatusCode < scMin || resp.StatusCode >= scMax {
-		return nil, errors.New(string(b))
+		ce := newCloudError(resp.StatusCode, b)
+		return nil, ce
 	}
 	return b, nil
 }

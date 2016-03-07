@@ -930,6 +930,15 @@ func TestDeleteThingScopeBucketFail(t *testing.T) {
 	if err == nil {
 		t.Error("should fail")
 	}
+	code := err.(*CloudError).ErrorCode
+	httpCode := err.(*CloudError).HTTPStatus
+	if code != "WRONG_TOKEN" {
+		t.Errorf("unexpected error object: %v+", err)
+	}
+	if httpCode != 403 {
+		t.Errorf("unexpected error object: %v+", err)
+	}
+
 }
 
 func TestQueryObjectsFail(t *testing.T) {
