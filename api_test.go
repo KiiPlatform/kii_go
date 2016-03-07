@@ -931,7 +931,7 @@ func TestDeleteThingScopeBucketFail(t *testing.T) {
 		t.Error("should fail")
 	}
 	code := err.(*CloudError).ErrorCode
-	httpCode := err.(*CloudError).HttpStatus
+	httpCode := err.(*CloudError).HTTPStatus
 	if code != "WRONG_TOKEN" {
 		t.Errorf("unexpected error object: %v+", err)
 	}
