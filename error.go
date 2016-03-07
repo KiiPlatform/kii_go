@@ -2,6 +2,7 @@ package kii
 
 import (
 	"fmt"
+	"encoding/json"
 )
 
 // Represents Error Response Returned by Kii Cloud.
@@ -14,6 +15,15 @@ type ErrorResponse struct {
 type CloudError struct {
 	ErrorResponse
 	HttpStatus int
+	RawResponse string
+}
+
+func newCloudError(httpStatus int, rawResponse []byte) *CloudError {
+	var ce CloudError
+	ce.HttpStatus = httpStatus
+	ce.RawResponse = string(rawResponse)
+	json.Unmarshal(rawResponse, &ce)
+	return &ce
 }
 
 func (e CloudError) Error() string {
