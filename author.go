@@ -121,7 +121,6 @@ func (a APIAuthor) RegisterThing(request interface{}) (*RegisterThingResponse, e
 }
 
 // UpdateState updates Thing state.
-// Notes that the APIAuthor should be already initialized as a Gateway or EndNode
 func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
 	url := a.App.ThingIFURL(path)
