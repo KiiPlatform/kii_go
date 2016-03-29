@@ -284,7 +284,6 @@ func TestEndNodeStateFail(t *testing.T) {
 	if err == nil {
 		t.Errorf("should fail.")
 	}
-
 }
 
 func TestRegisterAndLoginKiiUserSuccess(t *testing.T) {
