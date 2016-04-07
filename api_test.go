@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/koron/go-dproxy"
 )
 
 func TestAnonymousLogin(t *testing.T) {
@@ -242,6 +244,22 @@ func TestEndNodeStateSuccess(t *testing.T) {
 	err = endNodeAuthor.UpdateState(endNodeID, request)
 	if err != nil {
 		t.Errorf("should not fail. %s", err)
+	}
+
+	resp, err := endNodeAuthor.GetState(endNodeID)
+
+	fmt.Printf("get state:%#v", resp)
+
+	if p, err := dproxy.New(resp).M("Power").Bool(); err != nil || p != true {
+		t.Errorf("should not fail.")
+	}
+
+	if b, err := dproxy.New(resp).M("Brightness").Int64(); err != nil || b != 81 {
+		t.Errorf("should not fail.")
+	}
+
+	if c, err := dproxy.New(resp).M("Color").Int64(); err != nil || c != 255 {
+		t.Errorf("should not fail.")
 	}
 }
 

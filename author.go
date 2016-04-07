@@ -137,6 +137,30 @@ func (a APIAuthor) UpdateState(thingID string, request interface{}) error {
 	return nil
 }
 
+// GetState get Thing state.
+func (a APIAuthor) GetState(thingID string) (interface{}, error) {
+	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
+	url := a.App.ThingIFURL(path)
+
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var state interface{}
+	err = json.Unmarshal(resp, &state)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
+}
+
 // LoginAsKiiUser logins as a KiiUser.
 // If there is no error, UserLoginResponse is returned.
 // Notes that after login successfully, api doesn't update token of APIAuthor,
