@@ -483,7 +483,7 @@ func TestUpdateCommandResultsSuccess(t *testing.T) {
 	actionResults := []map[string]interface{}{
 		{
 			"turnPower": map[string]interface{}{
-				"result": false,
+				"succeeded": false,
 			},
 		},
 	}
@@ -509,7 +509,7 @@ func TestUpdateCommandResultsFail(t *testing.T) {
 	actionResults := []map[string]interface{}{
 		{
 			"turnPower": map[string]interface{}{
-				"result": false,
+				"succeeded": false,
 			},
 		},
 	}
