@@ -505,3 +505,41 @@ func (a APIAuthor) ReportEndnodeStatus(gatewayID, endnodeID string, request Repo
 	}
 	return nil
 }
+
+// UpdateMultipleTraitState updates multiple traits formatted Thing state. You should first define trait, thingType,
+// firmwareVersion and alias in server. Then onboard the thing with thingType and firmwareVersion
+// Notes that the APIAuthor should be already initialized as a Gateway or EndNode
+func (a APIAuthor) UpdateMultipleTraitState(thingID string, request interface{}) error {
+	path := fmt.Sprintf("/targets/thing:%s/states", thingID)
+	url := a.App.ThingIFURL(path)
+
+	req, err := a.newRequest("PUT", url, request)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.MultipleTraitState+json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateTraitState updates Thing state with specified trait/alias. You should first define trait, thingType,
+// firmwareVersion and alias in server. Then onboard the thing with thingType and firmwareVersion
+// Notes that the APIAuthor should be already initialized as a Gateway or EndNode
+func (a APIAuthor) UpdateTraitState(thingID string, alias string, request interface{}) error {
+	path := fmt.Sprintf("/targets/thing:%s/states/aliases/%s", thingID, alias)
+	url := a.App.ThingIFURL(path)
+
+	req, err := a.newRequest("PUT", url, request)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.TraitState+json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
+}

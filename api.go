@@ -47,6 +47,7 @@ type OnboardGatewayRequest struct {
 	ThingType       string                 `json:"thingType"`
 	LayoutPosition  string                 `json:"layoutPosition"`
 	ThingProperties map[string]interface{} `json:"thingProperties"`
+	FirmwareVersion string                 `json:"firmwareVersion"`
 }
 
 var _ contentTyper = (*OnboardGatewayRequest)(nil)
@@ -196,6 +197,7 @@ type OnboardEndnodeRequestCommon struct {
 	Owner                  string `json:"owner"`
 	EndNodeThingProperties string `json:"endNodeThingProperties,omitempty"`
 	EndNodeThingType       string `json:"endNodeThingType,omitempty"`
+	EndNodeFirmwareVersion string `json:"endNodeFirmwareVersion,omitempty"`
 }
 
 // OnboardEndnodeWithGatewayThingIDRequest for requesting Onboard with thingID of gateway
@@ -290,6 +292,7 @@ type GetThingResponse struct {
 	Disabled               bool   `json:"_disabled"`
 	Online                 bool   `json:"_online"`
 	OnlineStatusModifiedAt int    `json:"_onlineStatusModifiedAt"`
+	FirmwareVersion        string `json:"_firmwareVersion"`
 }
 
 // ReportEndnodeStatusRequest for reporting endnode online status

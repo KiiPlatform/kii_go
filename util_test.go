@@ -1,20 +1,30 @@
 package kii
 
 import (
-	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"time"
-
-	"github.com/koron/go-dproxy"
 )
 
 var testApp App
 
 func init() {
+	envName := "KIIGO_APP"
+	s, ok := os.LookupEnv(envName)
+	if !ok || s == "" {
+		fmt.Printf("failed to lookup environment value for %s", envName)
+		return
+	}
+	ss := strings.SplitN(s, ":", 3)
+	if len(ss) != 3 {
+		fmt.Printf("invalid format of %s, it should be {SITE}:{APP_ID}:{APP_KEY}", envName)
+		return
+	}
 	testApp = App{
-		AppID:    "9ab34d8b",
-		AppKey:   "7a950d78956ed39f3b0815f0f001b43b",
-		Location: "JP",
+		Location: ss[0],
+		AppID:    ss[1],
+		AppKey:   ss[2],
 	}
 	// If you want to make log enabled, uncomment below line.
 	//Logger = log.New(os.Stderr, "", log.LstdFlags)
@@ -80,21 +90,6 @@ func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
 	}
 	respObj, err := author.LoginAsKiiUser(loginReqObj)
 	if err != nil {
-		var v interface{}
-
-		if err := json.Unmarshal([]byte(err.Error()), &v); err != nil {
-			return nil, "", err
-		}
-		fmt.Println("ok here")
-		errCode, err := dproxy.New(v).M("errorCode").String()
-		if err != nil {
-			return nil, "", err
-		}
-
-		if errCode != "invalid_grant" {
-			return nil, "", err
-		}
-
 		requestObj := UserRegisterRequest{
 			LoginName: userName,
 			Password:  password,
