@@ -2,16 +2,29 @@ package kii
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 )
 
 var testApp App
 
 func init() {
+	envName := "KIIGO_APP"
+	s, ok := os.LookupEnv(envName)
+	if !ok || s == "" {
+		fmt.Printf("failed to lookup environment value for %s", envName)
+		return
+	}
+	ss := strings.SplitN(s, ":", 3)
+	if len(ss) != 3 {
+		fmt.Printf("invalid format of %s, it should be {SITE}:{APP_ID}:{APP_KEY}", envName)
+		return
+	}
 	testApp = App{
-		AppID:    "crju493ckopg",
-		AppKey:   "408d090d161c40d2b24ae289030351df",
-		Location: "US",
+		Location: ss[0],
+		AppID:    ss[1],
+		AppKey:   ss[2],
 	}
 	// If you want to make log enabled, uncomment below line.
 	//Logger = log.New(os.Stderr, "", log.LstdFlags)
