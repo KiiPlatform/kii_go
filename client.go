@@ -42,6 +42,9 @@ func newRequest(method, url string, body interface{}) (*request, error) {
 			req.Header.Set("Content-Type", "application/json")
 		}
 	}
+	if defaultUserAgent != "" {
+		req.Header.Set("User-Agent", defaultUserAgent)
+	}
 	return &request{
 		Request: req,
 		body:    bb,
@@ -72,4 +75,13 @@ func executeRequest2(req *request, scMin, scMax int) ([]byte, error) {
 		return nil, ce
 	}
 	return b, nil
+}
+
+var defaultUserAgent = "";
+
+// SetDefaultUserAgent sets default of user agent.  If the default user agent
+// is not empty, it is used for "User-Agent" for all requests which made by
+// kii_go.
+func SetDefaultUserAgent(s string) {
+	defaultUserAgent = s
 }
