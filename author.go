@@ -228,6 +228,30 @@ func (a APIAuthor) PostCommand(thingID string, request PostCommandRequest) (*Pos
 	return &ret, nil
 }
 
+// PostTraitCommand posts trait command to Thing.
+// Notes that it requires Thing already onboard.
+// If there is no error, PostCommandResponse is returned.
+func (a APIAuthor) PostTraitCommand(thingID string, request PostCommandRequest) (*PostCommandResponse, error) {
+	path := fmt.Sprintf("/targets/THING:%s/commands", thingID)
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("POST", url, request)
+	req.Header.Set("Content-Type", "application/vnd.kii.CommandCreationRequest+json")
+
+	if err != nil {
+		return nil, err
+	}
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret PostCommandResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
 // UpdateCommandResults updates command results.
 func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, request UpdateCommandResultsRequest) error {
 
@@ -237,9 +261,43 @@ func (a APIAuthor) UpdateCommandResults(thingID string, commandID string, reques
 	if err != nil {
 		return err
 	}
-
 	_, err = executeRequest(req)
 	return err
+}
+
+// UpdateTraitCommandResults updates trait format command results.
+func (a APIAuthor) UpdateTraitCommandResults(thingID string, commandID string, request UpdateCommandResultsRequest) error {
+
+	path := fmt.Sprintf("/targets/thing:%s/commands/%s/action-results", thingID, commandID)
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("PUT", url, request)
+	req.Header.Set("Content-Type", "application/vnd.kii.CommandResultsUpdateRequest+json")
+	if err != nil {
+		return err
+	}
+	_, err = executeRequest(req)
+	return err
+}
+
+// GetCommand gets command info
+func (a *APIAuthor) GetCommand(thingID, commandID string) (*GetCommandResponse, error) {
+	path := fmt.Sprintf("/targets/thing:%s/commands/%s", thingID, commandID)
+	url := a.App.ThingIFURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret GetCommandResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 // OnboardThingByOwner onboards a thing by its owner.
