@@ -168,8 +168,8 @@ type UserLoginResponse struct {
 type PostCommandRequest struct {
 	Issuer           string                   `json:"issuer"`
 	Actions          []map[string]interface{} `json:"actions"`
-	Schema           string                   `json:"schema"`
-	SchemaVersion    int                      `json:"schemaVersion"`
+	Schema           string                   `json:"schema,omitempty"`
+	SchemaVersion    int                      `json:"schemaVersion,omitempty"`
 	FiredByTriggerID string                   `json:"firedByTriggerID,omitempty"`
 	Title            string                   `json:"title,omitempty"`
 	Description      string                   `json:"description,omitempty"`
@@ -221,6 +221,18 @@ type OnboardEndnodeResponse struct {
 // UpdateCommandResultsRequest for updating command results
 type UpdateCommandResultsRequest struct {
 	ActionResults []map[string]interface{} `json:"actionResults"`
+}
+
+// GetCommandResponse represents reponse of geting command
+type GetCommandResponse struct {
+	CommandID     string                   `json:"commandId"`
+	Target        string                   `json:"target"`
+	Issuer        string                   `json:"issuer"`
+	Actions       []map[string]interface{} `json:"actions"`
+	ActionResults []map[string]interface{} `json:"actionResults"`
+	CommandState  string                   `json:"commandState"`
+	CreatedAt     int64                    `json:"createdAt"`
+	ModifiedAt    int64                    `json:"modifiedAt"`
 }
 
 // EndNode represents end-node
