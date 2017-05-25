@@ -72,6 +72,9 @@ type MqttEndpoint struct {
 	Password       string `json:"password"`
 	PortSSL        int    `json:"portSSL"`
 	PortTCP        int    `json:"portTCP"`
+	PortWS         int    `json:"portWS,omitempty"`
+	PortWSS        int    `json:"portWSS,omitempty"`
+	XMqttTTL       int    `json:"X-MQTT-TTL,omitempty"`
 }
 
 // EndNodeTokenRequest for requesting end node token
