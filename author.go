@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+
+	dproxy "github.com/koron/go-dproxy"
 )
 
 // APIAuthor represents API author.
@@ -600,4 +602,50 @@ func (a APIAuthor) UpdateTraitState(thingID string, alias string, request interf
 		return err
 	}
 	return nil
+}
+
+//InstallMqtt a MQTT installation to the Kii cloud for current logged in user.
+func (a APIAuthor) InstallMqtt(development bool) (installationID string, err error) {
+	url := a.App.CloudURL("/installations")
+	req, err := a.newRequest("POST", url, map[string]interface{}{
+		"deviceType":  "MQTT",
+		"development": development,
+	})
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-type", "application/vnd.kii.InstallationCreationRequest+json")
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return "", err
+	}
+	var resp interface{}
+	err = json.Unmarshal(bodyStr, &resp)
+	if err != nil {
+		return "", err
+	}
+	return dproxy.New(resp).M("installationID").String()
+}
+
+// GetMqttEndpoint gets mqtt endpoint with specified installationID.
+func (a APIAuthor) GetMqttEndpoint(installationID string) (endpoint *MqttEndpoint, err error) {
+	path := fmt.Sprintf("/installations/%s/mqtt-endpoint", installationID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret MqttEndpoint
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+
 }
