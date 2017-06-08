@@ -15,23 +15,22 @@ func TestCreateAppScopeObjectSuccess(t *testing.T) {
 		t.Error("fail to get login user", err)
 	}
 
-	scope := Scope{
-		Type: APP,
-	}
-
 	bn := fmt.Sprintf("myBucket%d", time.Now().UnixNano())
 
 	data := map[string]interface{}{
 		"key1": "value1",
 		"key2": "value2",
 	}
-	resp, err := author.CreateObject(scope, bn, data)
+	b := AppBucket{
+		BucketName: bn,
+	}
+	resp, err := author.PostObject(b, data)
 
 	if err != nil {
 		t.Errorf("create app scope object failed: %s\n", err)
 	}
 	id := resp.ObjectID
-	obj, err := author.GetObject(scope, bn, id)
+	obj, err := author.GetObject(b, id)
 	if err != nil {
 		t.Errorf("failed to GetObject, err: %s", err)
 	}
@@ -43,11 +42,11 @@ func TestCreateAppScopeObjectSuccess(t *testing.T) {
 		t.Errorf("value of key2 is invalid")
 	}
 
-	if err := author.DeleteObject(scope, bn, id); err != nil {
+	if err := author.DeleteObject(b, id); err != nil {
 		t.Errorf("delete object fail:%s\n", err)
 	}
 
-	if err := author.DeleteBucket(scope, bn); err != nil {
+	if err := author.DeleteBucket(b); err != nil {
 		t.Errorf("delete bucket fail:%s\n", err)
 	}
 }
@@ -59,24 +58,24 @@ func TestCreateUserScopeObjectSuccess(t *testing.T) {
 		t.Error("fail to get login user", err)
 	}
 
-	scope := Scope{
-		Type: USER,
-		ID:   userID,
-	}
-
 	bn := fmt.Sprintf("myBucket%d", time.Now().UnixNano())
 
 	data := map[string]interface{}{
 		"key1": "value1",
 		"key2": "value2",
 	}
-	resp, err := author.CreateObject(scope, bn, data)
+
+	b := UserBucket{
+		BucketName: bn,
+		UserID:     userID,
+	}
+	resp, err := author.PostObject(b, data)
 
 	if err != nil {
 		t.Errorf("create app scope object failed: %s\n", err)
 	}
 	id := resp.ObjectID
-	obj, err := author.GetObject(scope, bn, id)
+	obj, err := author.GetObject(b, id)
 	if err != nil {
 		t.Errorf("failed to GetObject, err: %s", err)
 	}
@@ -88,11 +87,11 @@ func TestCreateUserScopeObjectSuccess(t *testing.T) {
 		t.Errorf("value of key2 is invalid")
 	}
 
-	if err := author.DeleteObject(scope, bn, id); err != nil {
+	if err := author.DeleteObject(b, id); err != nil {
 		t.Errorf("delete object fail:%s\n", err)
 	}
 
-	if err := author.DeleteBucket(scope, bn); err != nil {
+	if err := author.DeleteBucket(b); err != nil {
 		t.Errorf("delete bucket fail:%s\n", err)
 	}
 
