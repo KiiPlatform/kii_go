@@ -401,25 +401,11 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListE
 
 // CreateThingScopeObject create Thing scope object
 func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map[string]interface{}) (*CreateObjectResponse, error) {
-	path := fmt.Sprintf("/things/%s/buckets/%s/objects", thingID, bucketName)
-	url := a.App.CloudURL(path)
-	req, err := a.newRequest("POST", url, object)
-	if err != nil {
-		return nil, err
+	ts := ThingBucket{
+		BucketName: bucketName,
+		ThingID:    thingID,
 	}
-
-	bodyStr, err := executeRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	var ret CreateObjectResponse
-	if err := json.Unmarshal(bodyStr, &ret); err != nil {
-		return nil, err
-	}
-
-	return &ret, nil
-
+	return a.PostObject(ts, object)
 }
 
 // ListAllThingScopeObjects list all objects of the specified thing scope bucket
@@ -448,19 +434,11 @@ func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara
 
 //DeleteThingScopeBucket delete ThingScope bucket
 func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
-	path := fmt.Sprintf("/things/%s/buckets/%s", thingID, bucketName)
-	url := a.App.CloudURL(path)
-
-	req, err := a.newRequest("DELETE", url, nil)
-	if err != nil {
-		return err
+	ts := ThingBucket{
+		BucketName: bucketName,
+		ThingID:    thingID,
 	}
-
-	_, err = executeRequest(req)
-	if err != nil {
-		return err
-	}
-	return nil
+	return a.DeleteBucket(ts)
 }
 
 //QueryObjects query objects of bucket under Thing Scope
