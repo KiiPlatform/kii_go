@@ -33,8 +33,8 @@ type GroupBucket struct {
 }
 
 // Path generates path string of group bucket
-func (ub GroupBucket) Path() string {
-	return "/groups/" + ub.GroupID + "/buckets/" + ub.BucketName
+func (gb GroupBucket) Path() string {
+	return "/groups/" + gb.GroupID + "/buckets/" + gb.BucketName
 }
 
 // ThingBucket represents thing bucket
@@ -44,6 +44,6 @@ type ThingBucket struct {
 }
 
 // Path generates path string of user bucket
-func (ub ThingBucket) Path() string {
-	return "/things/" + ub.ThingID + "/buckets/" + ub.BucketName
+func (tb ThingBucket) Path() string {
+	return "/things/" + tb.ThingID + "/buckets/" + tb.BucketName
 }

@@ -400,6 +400,8 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListE
 }
 
 // CreateThingScopeObject create Thing scope object
+//
+// Deprecated: Use PostObject instead.
 func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map[string]interface{}) (*CreateObjectResponse, error) {
 	ts := ThingBucket{
 		BucketName: bucketName,
@@ -432,7 +434,9 @@ func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara
 	}, nil
 }
 
-//DeleteThingScopeBucket delete ThingScope bucket
+// DeleteThingScopeBucket delete ThingScope bucket
+//
+// Deprecated: Use DeleBucket instead.
 func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
 	ts := ThingBucket{
 		BucketName: bucketName,
