@@ -649,3 +649,139 @@ func (a APIAuthor) GetMqttEndpoint(installationID string) (endpoint *MqttEndpoin
 	return &ret, nil
 
 }
+
+// ScopeType represents type of scope
+type ScopeType int
+
+const (
+	// APP represents app scope
+	APP ScopeType = iota
+	// GROUP represents group scope
+	GROUP
+	// USER represents user scope
+	USER
+	// THING represents thing scope
+	THING
+)
+
+func (st ScopeType) String() string {
+	switch st {
+	case APP:
+		return ""
+	case GROUP:
+		return "groups"
+	case USER:
+		return "users"
+	case THING:
+		return "things"
+	default:
+		return "unknow_scope"
+	}
+}
+
+// Scope represents scope
+type Scope struct {
+	Type ScopeType
+	ID   string
+}
+
+func (s Scope) getScopePath() (string, error) {
+	if s.Type.String() == "unknow_scope" {
+		return "", errors.New("unknown scope")
+	}
+	if s.Type != APP {
+		return fmt.Sprintf("%s/%s/", s.Type.String(), s.ID), nil
+	}
+	return "", nil
+}
+
+// CreateObject creates a kii object with data
+func (a APIAuthor) CreateObject(scope Scope, bucketName string, data map[string]interface{}) (*CreateObjectResponse, error) {
+	sp, err := scope.getScopePath()
+	if err != nil {
+		return nil, err
+	}
+	path := fmt.Sprintf("/%sbuckets/%s/objects", sp, bucketName)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("POST", url, data)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret CreateObjectResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// GetObject retrieves kii object with object ID
+func (a APIAuthor) GetObject(scope Scope, bucketName, objectID string) (interface{}, error) {
+	sp, err := scope.getScopePath()
+	if err != nil {
+		return nil, err
+	}
+	path := fmt.Sprintf("/%sbuckets/%s/objects/%s", sp, bucketName, objectID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var obj interface{}
+	err = json.Unmarshal(resp, &obj)
+	if err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
+// DeleteObject deletes a kii object with object ID
+func (a APIAuthor) DeleteObject(scope Scope, bucketName, objectID string) error {
+	sp, err := scope.getScopePath()
+	if err != nil {
+		return err
+	}
+	path := fmt.Sprintf("/%sbuckets/%s/objects/%s", sp, bucketName, objectID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteBucket deletes bucket
+func (a APIAuthor) DeleteBucket(scope Scope, bucketName string) error {
+	sp, err := scope.getScopePath()
+	if err != nil {
+		return err
+	}
+	path := fmt.Sprintf("/%sbuckets/%s", sp, bucketName)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
