@@ -400,26 +400,14 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListE
 }
 
 // CreateThingScopeObject create Thing scope object
+//
+// Deprecated: Use PostObject instead.
 func (a APIAuthor) CreateThingScopeObject(thingID, bucketName string, object map[string]interface{}) (*CreateObjectResponse, error) {
-	path := fmt.Sprintf("/things/%s/buckets/%s/objects", thingID, bucketName)
-	url := a.App.CloudURL(path)
-	req, err := a.newRequest("POST", url, object)
-	if err != nil {
-		return nil, err
+	ts := ThingBucket{
+		BucketName: bucketName,
+		ThingID:    thingID,
 	}
-
-	bodyStr, err := executeRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	var ret CreateObjectResponse
-	if err := json.Unmarshal(bodyStr, &ret); err != nil {
-		return nil, err
-	}
-
-	return &ret, nil
-
+	return a.PostObject(ts, object)
 }
 
 // ListAllThingScopeObjects list all objects of the specified thing scope bucket
@@ -446,21 +434,15 @@ func (a APIAuthor) ListAllThingScopeObjects(thingID, bucketName string, listPara
 	}, nil
 }
 
-//DeleteThingScopeBucket delete ThingScope bucket
+// DeleteThingScopeBucket delete ThingScope bucket
+//
+// Deprecated: Use DeleBucket instead.
 func (a APIAuthor) DeleteThingScopeBucket(thingID, bucketName string) error {
-	path := fmt.Sprintf("/things/%s/buckets/%s", thingID, bucketName)
-	url := a.App.CloudURL(path)
-
-	req, err := a.newRequest("DELETE", url, nil)
-	if err != nil {
-		return err
+	ts := ThingBucket{
+		BucketName: bucketName,
+		ThingID:    thingID,
 	}
-
-	_, err = executeRequest(req)
-	if err != nil {
-		return err
-	}
-	return nil
+	return a.DeleteBucket(ts)
 }
 
 //QueryObjects query objects of bucket under Thing Scope
@@ -648,4 +630,78 @@ func (a APIAuthor) GetMqttEndpoint(installationID string) (endpoint *MqttEndpoin
 	}
 	return &ret, nil
 
+}
+
+// PostObject creates a kii object with data
+func (a APIAuthor) PostObject(bucket Bucket, data map[string]interface{}) (*CreateObjectResponse, error) {
+	path := fmt.Sprintf("/%s/objects", bucket.Path())
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("POST", url, data)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret CreateObjectResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// GetObject retrieves kii object with object ID
+func (a APIAuthor) GetObject(bucket Bucket, objectID string) (interface{}, error) {
+	path := fmt.Sprintf("/%s/objects/%s", bucket.Path(), objectID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var obj interface{}
+	err = json.Unmarshal(resp, &obj)
+	if err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
+// DeleteObject deletes a kii object with object ID
+func (a APIAuthor) DeleteObject(bucket Bucket, objectID string) error {
+	path := fmt.Sprintf("/%s/objects/%s", bucket.Path(), objectID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteBucket deletes bucket
+func (a APIAuthor) DeleteBucket(bucket Bucket) error {
+	url := a.App.CloudURL(bucket.Path())
+
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = executeRequest(req)
+	if err != nil {
+		return err
+	}
+	return nil
 }
