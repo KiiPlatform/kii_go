@@ -1027,8 +1027,9 @@ func TestUpdateVendorThingIDSuccess(t *testing.T) {
 	if err != nil {
 		t.Error("should not fail to get Thing", err)
 	} else {
-		if resp.VendorThingID != newVid {
-			t.Error("vendorThingID should be updated", resp.VendorThingID)
+
+		if vid, err := dproxy.New(resp).M("_vendorThingID").String(); err != nil || vid != newVid {
+			t.Error("vendorThingID not updated correctly")
 		}
 	}
 

@@ -1,6 +1,10 @@
 package kii
 
-import "testing"
+import (
+	"testing"
+
+	dproxy "github.com/koron/go-dproxy"
+)
 
 func TestReportEndnodeStatusSuccess(t *testing.T) {
 	// get a login user
@@ -51,10 +55,9 @@ func TestReportEndnodeStatusSuccess(t *testing.T) {
 	if err != nil {
 		t.Error("get thing fail", err)
 	}
-	if gtResp.Online != true {
+	if online, err := dproxy.New(gtResp).M("_online").Bool(); err != nil || online != true {
 		t.Error("online status of thing should be true")
 	}
-
 	// report endnode connection to false
 	recReq.Online = false
 	err = gwAu.ReportEndnodeStatus(*gwid, endnodeID, recReq)
@@ -66,10 +69,9 @@ func TestReportEndnodeStatusSuccess(t *testing.T) {
 	if err != nil {
 		t.Error("get thing fail", err)
 	}
-	if gtResp.Online != false {
-		t.Error("online status of thing should be true")
+	if online, err := dproxy.New(gtResp).M("_online").Bool(); err != nil || online != false {
+		t.Error("online status of thing should be false")
 	}
-
 	// delete the endnode
 	err = author.DeleteThing(endnodeID)
 	if err != nil {
