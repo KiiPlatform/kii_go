@@ -522,6 +522,7 @@ func (a APIAuthor) UpdateThing(thingID string, data map[string]interface{}) erro
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/vnd.kii.ThingUpdateRequest+json")
 
 	if _, err := executeRequest(req); err != nil {
 		return err
