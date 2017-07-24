@@ -493,7 +493,7 @@ func (a APIAuthor) UpdateVendorThingID(thingID string, request UpdateVendorThing
 }
 
 // GetThing get thing info
-func (a APIAuthor) GetThing(thingID string) (*GetThingResponse, error) {
+func (a APIAuthor) GetThing(thingID string) (interface{}, error) {
 	path := fmt.Sprintf("/things/%s", thingID)
 	url := a.App.CloudURL(path)
 	req, err := a.newRequest("GET", url, nil)
@@ -506,11 +506,28 @@ func (a APIAuthor) GetThing(thingID string) (*GetThingResponse, error) {
 		return nil, err
 	}
 
-	var ret GetThingResponse
-	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+	var obj interface{}
+	err = json.Unmarshal(bodyStr, &obj)
+	if err != nil {
 		return nil, err
 	}
-	return &ret, nil
+	return obj, nil
+}
+
+// UpdateThing update thing properites.
+func (a APIAuthor) UpdateThing(thingID string, data map[string]interface{}) error {
+	path := fmt.Sprintf("/things/%s", thingID)
+	url := a.App.CloudURL(path)
+	req, err := a.newRequest("PATCH", url, data)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.ThingUpdateRequest+json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
 }
 
 // DeleteThing delete an exsiting Thing

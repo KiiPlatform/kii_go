@@ -88,11 +88,11 @@ func TestOnboadWithFirmwareVersion(t *testing.T) {
 	if err != nil {
 		t.Errorf("get thing failed:%s", err)
 	}
-	if thingRes.ThingType != thingType {
-		t.Errorf("thingType is wrong %s", thingRes.ThingType)
+	if tt, err := dproxy.New(thingRes).M("_thingType").String(); err != nil || tt != thingType {
+		t.Errorf("thingType is wrong")
 	}
-	if thingRes.FirmwareVersion != firmwareVersion {
-		t.Errorf("firmwareVersion is wrong %s", thingRes.FirmwareVersion)
+	if fv, err := dproxy.New(thingRes).M("_firmwareVersion").String(); err != nil || fv != firmwareVersion {
+		t.Errorf("firmwareVersion is wrong")
 	}
 }
 
