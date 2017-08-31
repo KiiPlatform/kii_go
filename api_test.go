@@ -1076,5 +1076,42 @@ func TestDeleteThingFail(t *testing.T) {
 	if err == nil {
 		t.Error("should fail")
 	}
+}
+func TestResetThingPasswordSuccess(t *testing.T) {
+	author, err := AdminLogin(testApp, clientID, clientSecret)
+	if err != nil {
+		t.Errorf("anonymouseLogin fail:%s", err)
+	}
+	vid := fmt.Sprintf("dummyID%d", time.Now().UnixNano())
+	req := RegisterThingRequest{
+		VendorThingID:  vid,
+		ThingPassword:  "dummyPass",
+		ThingType:      "dummyType",
+		LayoutPosition: ENDNODE.String(),
+	}
+	thing, err := author.RegisterThing(req)
+	if err != nil {
+		t.Errorf("failed to register thing: %v", err)
+	}
 
+	err = author.ResetThingPassword(thing.ThingID, "newPass")
+	if err != nil {
+		t.Errorf("failed to reset password: %v", err)
+	}
+
+	err = author.DeleteThing(thing.ThingID)
+	if err != nil {
+		t.Errorf("failed to delete thing: %v", err)
+	}
+}
+
+func TestResetThingPasswordFail(t *testing.T) {
+	au := APIAuthor{
+		Token: "dummyToken",
+		App:   testApp,
+	}
+	err := au.ResetThingPassword("dummyID", "newPass")
+	if err == nil {
+		t.Error("should fail")
+	}
 }

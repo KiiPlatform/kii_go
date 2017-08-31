@@ -722,3 +722,72 @@ func (a APIAuthor) DeleteBucket(bucket Bucket) error {
 	}
 	return nil
 }
+
+//QueryThings query things owned by user
+func (a APIAuthor) QueryThings(request ThingQueryRequest) (*QueryThingsResponse, error) {
+	if request.OwnerID == "" {
+		return nil, errors.New("OwnerID must not be empty")
+	}
+
+	clause := Clause{
+		"type":  "contains",
+		"field": "userOwners",
+		"value": request.OwnerID,
+	}
+	if request.Clause != nil {
+		clause = AndClause(clause, request.Clause)
+	}
+
+	requestObj := map[string]interface{}{
+		"thingQuery": map[string]interface{}{
+			"clause": clause,
+		},
+	}
+
+	if request.BestEffortLimit != 0 {
+		requestObj["bestEffortLimit"] = strconv.Itoa(request.BestEffortLimit)
+	}
+	if request.NextPaginationKey != "" {
+		requestObj["paginationKey"] = request.NextPaginationKey
+	}
+
+	url := a.App.CloudURL("/things/query")
+
+	req, err := a.newRequest("POST", url, requestObj)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/vnd.kii.ThingQueryRequest+json")
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var ret QueryThingsResponse
+	err = json.Unmarshal(bodyStr, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+// ResetThingPassword reset password of existing thing.
+func (a APIAuthor) ResetThingPassword(thingID, newPassword string) error {
+	path := fmt.Sprintf("/things/%s/password", thingID)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("PUT", url, map[string]string{
+		"newPassword": newPassword,
+	})
+	if err != nil {
+		return err
+	}
+	// a.newRequest() don't set Content-Type for nil body. So we must set it
+	// explicitly.
+	req.Header.Set("Content-Type", "application/vnd.kii.ChangeThingPasswordRequest+json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
+}

@@ -297,22 +297,22 @@ type UpdateVendorThingIDRequest struct {
 	Password      string `json:"_password"`
 }
 
-// GetThingResponse for receiving get thing response
-type GetThingResponse struct {
-	ThingID                string `json:"_thingID"`
-	VendorThingID          string `json:"_vendorThingID"`
-	ThingType              string `json:"_thingType"`
-	LayoutPosition         string `json:"_layoutPosition"`
-	Created                int    `json:"_created"`
-	Disabled               bool   `json:"_disabled"`
-	Online                 bool   `json:"_online"`
-	OnlineStatusModifiedAt int    `json:"_onlineStatusModifiedAt"`
-	FirmwareVersion        string `json:"_firmwareVersion"`
-}
-
 // ReportEndnodeStatusRequest for reporting endnode online status
 type ReportEndnodeStatusRequest struct {
 	Online bool `json:"online"`
+}
+
+// ThingQueryRequest for querying thing owner by user
+type ThingQueryRequest struct {
+	OwnerID string
+	Clause  Clause
+	ListRequest
+}
+
+// QueryThingsResponse represents response of querying things
+type QueryThingsResponse struct {
+	Results           []interface{} `json:"results"`
+	NextPaginationKey string        `json:"nextPaginationKey"`
 }
 
 // Clause for query
@@ -348,6 +348,42 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	}
 
 	var respObj AnonymousLoginResponse
+	err = json.Unmarshal(bodyStr, &respObj)
+	if err != nil {
+		return nil, err
+	}
+	return &APIAuthor{
+		Token: respObj.AccessToken,
+		App:   app,
+	}, nil
+}
+
+// AdminLogin logins as admin user.
+// When there's no error, APIAuthor is returned.
+func AdminLogin(app App, clientID, clientSecret string) (*APIAuthor, error) {
+
+	type LoginResponse struct {
+		ID          string `json:"id"`
+		AccessToken string `json:"access_token"`
+		ExpiresIn   int    `json:"expires_in"`
+		TokenType   string `json:"token_type"`
+	}
+	reqObj := map[string]string{
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"grant_type":    "client_credentials",
+	}
+	req, err := newRequest("POST", app.CloudURL("/oauth2/token"), &reqObj)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var respObj LoginResponse
 	err = json.Unmarshal(bodyStr, &respObj)
 	if err != nil {
 		return nil, err
