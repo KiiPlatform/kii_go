@@ -770,3 +770,24 @@ func (a APIAuthor) QueryThings(request ThingQueryRequest) (*QueryThingsResponse,
 	}
 	return &ret, nil
 }
+
+// ResetThingPassword reset password of existing thing.
+func (a APIAuthor) ResetThingPassword(thingID, newPassword string) error {
+	path := fmt.Sprintf("/things/%s/password", thingID)
+	url := a.App.CloudURL(path)
+
+	req, err := a.newRequest("PUT", url, map[string]string{
+		"newPassword": newPassword,
+	})
+	if err != nil {
+		return err
+	}
+	// a.newRequest() don't set Content-Type for nil body. So we must set it
+	// explicitly.
+	req.Header.Set("Content-Type", "application/vnd.kii.ChangeThingPasswordRequest+json")
+
+	if _, err := executeRequest(req); err != nil {
+		return err
+	}
+	return nil
+}

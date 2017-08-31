@@ -358,6 +358,42 @@ func AnonymousLogin(app App) (*APIAuthor, error) {
 	}, nil
 }
 
+// AdminLogin logins as admin user.
+// When there's no error, APIAuthor is returned.
+func AdminLogin(app App, clientID, clientSecret string) (*APIAuthor, error) {
+
+	type LoginResponse struct {
+		ID          string `json:"id"`
+		AccessToken string `json:"access_token"`
+		ExpiresIn   int    `json:"expires_in"`
+		TokenType   string `json:"token_type"`
+	}
+	reqObj := map[string]string{
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"grant_type":    "client_credentials",
+	}
+	req, err := newRequest("POST", app.CloudURL("/oauth2/token"), &reqObj)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var respObj LoginResponse
+	err = json.Unmarshal(bodyStr, &respObj)
+	if err != nil {
+		return nil, err
+	}
+	return &APIAuthor{
+		Token: respObj.AccessToken,
+		App:   app,
+	}, nil
+}
+
 // EqualsClause return clause for equals
 func EqualsClause(key string, value interface{}) Clause {
 	return Clause{

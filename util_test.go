@@ -8,6 +8,8 @@ import (
 )
 
 var testApp App
+var clientID string
+var clientSecret string
 
 func init() {
 	envName := "KIIGO_APP"
@@ -16,9 +18,9 @@ func init() {
 		fmt.Printf("failed to lookup environment value for %s", envName)
 		return
 	}
-	ss := strings.SplitN(s, ":", 3)
-	if len(ss) != 3 {
-		fmt.Printf("invalid format of %s, it should be {SITE}:{APP_ID}:{APP_KEY}", envName)
+	ss := strings.SplitN(s, ":", 5)
+	if len(ss) != 5 {
+		fmt.Printf("invalid format of %s, it should be {SITE}:{APP_ID}:{APP_KEY}:{CLIENT_ID}:{CLIENT_SECRET}", envName)
 		return
 	}
 	testApp = App{
@@ -26,6 +28,8 @@ func init() {
 		AppID:    ss[1],
 		AppKey:   ss[2],
 	}
+	clientID = ss[3]
+	clientSecret = ss[4]
 	// If you want to make log enabled, uncomment below line.
 	//Logger = log.New(os.Stderr, "", log.LstdFlags)
 }
