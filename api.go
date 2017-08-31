@@ -297,22 +297,22 @@ type UpdateVendorThingIDRequest struct {
 	Password      string `json:"_password"`
 }
 
-// GetThingResponse for receiving get thing response
-type GetThingResponse struct {
-	ThingID                string `json:"_thingID"`
-	VendorThingID          string `json:"_vendorThingID"`
-	ThingType              string `json:"_thingType"`
-	LayoutPosition         string `json:"_layoutPosition"`
-	Created                int    `json:"_created"`
-	Disabled               bool   `json:"_disabled"`
-	Online                 bool   `json:"_online"`
-	OnlineStatusModifiedAt int    `json:"_onlineStatusModifiedAt"`
-	FirmwareVersion        string `json:"_firmwareVersion"`
-}
-
 // ReportEndnodeStatusRequest for reporting endnode online status
 type ReportEndnodeStatusRequest struct {
 	Online bool `json:"online"`
+}
+
+// ThingQueryRequest for querying thing owner by user
+type ThingQueryRequest struct {
+	OwnerID string
+	Clause  Clause
+	ListRequest
+}
+
+// QueryThingsResponse represents response of querying things
+type QueryThingsResponse struct {
+	Results           []interface{} `json:"results"`
+	NextPaginationKey string        `json:"nextPaginationKey"`
 }
 
 // Clause for query

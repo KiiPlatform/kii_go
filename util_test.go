@@ -108,3 +108,30 @@ func GetLoginKiiUser() (loginAuthor *APIAuthor, userID string, error error) {
 	author.Token = respObj.AccessToken
 	return &author, respObj.ID, nil
 }
+
+func OnboardAGateway(vid, password string) (gateway *APIAuthor, gatewayID *string, error error) {
+
+	author, err := AnonymousLogin(testApp)
+	if err != nil {
+		return nil, nil, err
+	}
+	requestObj := OnboardGatewayRequest{
+		VendorThingID:  vid,
+		ThingPassword:  password,
+		ThingType:      "dummyType",
+		LayoutPosition: GATEWAY.String(),
+		ThingProperties: map[string]interface{}{
+			"myCustomString": "str",
+			"myNumber":       1,
+			"myObject": map[string]interface{}{
+				"a": "b",
+			},
+		},
+	}
+	respObj, err := author.OnboardGateway(&requestObj)
+	if err != nil {
+		return nil, nil, err
+	}
+	author.Token = respObj.AccessToken
+	return author, &respObj.ThingID, nil
+}
