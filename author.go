@@ -207,6 +207,17 @@ func (a *APIAuthor) RegisterKiiUser(request UserRegisterRequest) (*UserRegisterR
 	return &ret, nil
 }
 
+// DeleteKiiUser deletes kii user by id.
+func (a *APIAuthor) DeleteKiiUser(userID string) error {
+	url := a.App.CloudURL("/users/" + userID)
+	req, err := a.newRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	_, err = executeRequest(req)
+	return err
+}
+
 // PostCommand posts command to Thing.
 // Notes that it requires Thing already onboard.
 // If there is no error, PostCommandRequest is returned.
@@ -465,6 +476,31 @@ func (a APIAuthor) QueryObjects(thingID, bucketName string, request QueryObjects
 	}
 
 	var ret QueryObjectResponse
+	if err := json.Unmarshal(bodyStr, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+//QueryUsers query users
+func (a APIAuthor) QueryUsers(request QueryUsersRequest) (*QueryUsersResponse, error) {
+	url := a.App.CloudURL("/users/query")
+
+	req, err := a.newRequest("POST", url, request)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-type", "application/vnd.kii.UserQueryRequest+json")
+	if err != nil {
+		return nil, err
+	}
+
+	bodyStr, err := executeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret QueryUsersResponse
 	if err := json.Unmarshal(bodyStr, &ret); err != nil {
 		return nil, err
 	}

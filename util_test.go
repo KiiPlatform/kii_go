@@ -139,3 +139,7 @@ func OnboardAGateway(vid, password string) (gateway *APIAuthor, gatewayID *strin
 	author.Token = respObj.AccessToken
 	return author, &respObj.ThingID, nil
 }
+
+func randString() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
+}
