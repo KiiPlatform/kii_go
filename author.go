@@ -386,7 +386,7 @@ func (a *APIAuthor) ListEndNodes(gatewayID string, listPara ListRequest) (*ListE
 		v.Set("bestEffortLimit", strconv.Itoa(listPara.BestEffortLimit))
 	}
 	if listPara.NextPaginationKey != "" {
-		v.Set("nextPaginationKey", listPara.NextPaginationKey)
+		v.Set("paginationKey", listPara.NextPaginationKey)
 	}
 	if len(v) > 0 {
 		path += "?" + v.Encode()
