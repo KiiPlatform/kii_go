@@ -1,0 +1,54 @@
+version: 2
+references:
+  container_config: &container_config
+    parallelism: 1
+    working_directory: /go/src/github.com/KiiPlatform/kii_go
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+    docker:
+      - image: circleci/golang:1.11
+jobs:
+  build:
+    <<: *container_config
+    steps:
+      - checkout
+      - run: go version && go env
+      - run: go get -t -d -v ./...
+      - run: go build -v
+      - persist_to_workspace:
+          root: /go
+          paths:
+            - src/*
+  test:
+    <<: *container_config
+    steps:
+      - attach_workspace:
+          at: /go
+      # used to convert unit test plain output into junit.xml
+      - run: go get -v github.com/jstemmer/go-junit-report
+      - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+      - run: go version && go env
+      - run:
+          name: unit test
+          command: |
+            trap "go-junit-report <./test.out > $CIRCLE_TEST_REPORTS/test.xml" EXIT
+            go test -v -race | tee ./test.out
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      - store_artifacts:
+          path: /tmp/circleci-test-results
+workflows:
+  version: 2
+  build_test:
+    jobs:
+      - build:
+          filters:
+            tags:
+              ignore: /.*/
+      - test:
+          requires:
+            - build
+          filters:
+            tags:
+              ignore: /.*/
