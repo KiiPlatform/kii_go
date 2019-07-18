@@ -11,8 +11,9 @@ import (
 // outputted.  Please set a valid logger if you want to make kii module put
 // logs.
 //
-//	kii.Logger = log.New(os.Stderr, "", log.LstdFlags)
-var Logger = log.New(ioutil.Discard, "", 0)
+var Logger ILogger = &DefaultLogger{
+	Logger: log.New(ioutil.Discard, "", 0),
+}
 
 // LayoutPosition represents Layout position of the Thing.
 type LayoutPosition int
