@@ -16,7 +16,7 @@ type KiiLogger interface {
 	Errorf(format string, args ...interface{})
 }
 
-// DefaultLogger Default implementation for ILogger. This implementation use log.Logger.
+// DefaultLogger Default implementation for KiiLogger. This implementation use log.Logger.
 type DefaultLogger struct {
 	Logger *log.Logger
 }
