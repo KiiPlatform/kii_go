@@ -11,7 +11,7 @@ import (
 // outputted.  Please set a valid logger if you want to make kii module put
 // logs.
 //
-var Logger ILogger = &DefaultLogger{
+var Logger KiiLogger = &DefaultLogger{
 	Logger: log.New(ioutil.Discard, "", 0),
 }
 

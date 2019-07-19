@@ -4,8 +4,8 @@ import (
 	"log"
 )
 
-// ILogger Logger interface for this library
-type ILogger interface {
+// KiiLogger Logger interface for this library
+type KiiLogger interface {
 	Debug(format string)
 	Debugf(format string, args ...interface{})
 	Info(format string)
